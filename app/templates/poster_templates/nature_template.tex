@@ -1,0 +1,47 @@
+\documentclass[a0paper,portrait]{tikzposter}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amsthm}
+\usepackage{amssymb}
+\usepackage{mathrsfs}
+\usepackage{graphicx}
+\usepackage{adjustbox}
+\usepackage{enumitem}
+
+\usetheme{Simple}
+\usecolorstyle[colorOne=green!60!black, colorTwo=green!40!white, colorThree=white]{Ireland}
+
+\title{{{TITLE}}}
+\author{{{AUTHORS}}}
+\institute{Nature Publishing Group}
+
+\begin{document}
+
+\maketitle
+
+\begin{columns}
+    \column{0.6}
+    \block{Abstract}{
+        {{ABSTRACT}}
+    }
+    
+    \block{Methodology & Results}{
+        \textbf{Methodology:} {{METHODOLOGY}}
+        
+        \vspace{1em}
+        
+        \textbf{Results:} {{RESULTS}}
+    }
+    
+    \column{0.4}
+    \block{Key Findings}{
+        {{KEY_FINDINGS}}
+    }
+    
+    \block{Conclusion & Impact}{
+        {{CONCLUSION}}
+    }
+\end{columns}
+
+\end{document}

@@ -1,0 +1,44 @@
+\documentclass[a0paper,portrait]{tikzposter}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amsthm}
+\usepackage{amssymb}
+\usepackage{mathrsfs}
+\usepackage{graphicx}
+\usepackage{adjustbox}
+\usepackage{enumitem}
+\usepackage[backend=biber,style=ieee]{biblatex}
+
+\usetheme{Default}
+\usecolorstyle[colorOne=blue!50!black, colorTwo=gray!80!white, colorThree=orange]{Britain}
+
+\title{{{TITLE}}}
+\author{{{AUTHORS}}}
+\institute{Research Institution}
+
+\begin{document}
+
+\maketitle
+
+\begin{columns}
+    \column{0.5}
+    \block{Abstract}{
+        {{ABSTRACT}}
+    }
+    
+    \block{Methodology}{
+        {{METHODOLOGY}}
+    }
+    
+    \column{0.5}
+    \block{Results}{
+        {{RESULTS}}
+    }
+    
+    \block{Conclusion}{
+        {{CONCLUSION}}
+    }
+\end{columns}
+
+\end{document}
