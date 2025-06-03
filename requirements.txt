@@ -18,3 +18,5 @@ subprocess
 os
 tempfile
 shutil
+aiohttp==3.9.0
+pillow==10.0.1

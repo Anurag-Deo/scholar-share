@@ -20,6 +20,14 @@ class Settings:
     LIGHT_MODEL_API_KEY: str = os.getenv("LIGHT_MODEL_API_KEY", "")
     LIGHT_MODEL_BASE_URL: str | None = os.getenv("LIGHT_MODEL_BASE_URL")
 
+    # Image Generation
+    IMAGE_GEN_API_KEY: str = os.getenv("IMAGE_GEN_API_KEY", "")
+    IMAGE_GEN_BASE_URL: str | None = os.getenv("IMAGE_GEN_BASE_URL", "https://api.openai.com/v1/images/generations")
+    IMAGE_GEN_MODEL: str = os.getenv("IMAGE_GEN_MODEL", "dall-e-3")
+    IMAGE_GEN_IMAGE_SIZE: str = os.getenv("IMAGE_GEN_IMAGE_SIZE", "1024x1024")
+    IMAGE_GEN_IMAGE_QUALITY: str = os.getenv("IMAGE_GEN_IMAGE_QUALITY", "standard")
+    IMAGE_GEN_IMAGE_STYLE: str = os.getenv("IMAGE_GEN_IMAGE_STYLE", "vivid")
+
     # API Keys
     DEVTO_API_KEY: str = os.getenv("DEVTO_API_KEY", "")
 

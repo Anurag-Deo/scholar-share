@@ -1,5 +1,6 @@
 from app.agents.base_agent import BaseAgent
 from app.models.schemas import PaperAnalysis, TLDRContent
+from app.services.image_service import image_service
 
 
 class TLDRGeneratorAgent(BaseAgent):
@@ -88,12 +89,28 @@ class TLDRGeneratorAgent(BaseAgent):
         instagram_caption = await self._generate_platform_content(instagram_prompt)
         hashtags = self._generate_hashtags(analysis)
 
+        # Generate images for all platforms
+        try:
+            images = await image_service.generate_all_social_images(analysis)
+        except Exception as e:
+            print(f"Error generating images: {e!s}")
+            images = {
+                "linkedin": None,
+                "twitter": None,
+                "facebook": None,
+                "instagram": None,
+            }
+
         return TLDRContent(
             linkedin_post=linkedin_post,
             twitter_thread=twitter_thread,
             facebook_post=facebook_post,
             instagram_caption=instagram_caption,
             hashtags=hashtags,
+            linkedin_image=images.get("linkedin"),
+            twitter_image=images.get("twitter"),
+            facebook_image=images.get("facebook"),
+            instagram_image=images.get("instagram"),
         )
 
     async def _generate_platform_content(self, prompt: str) -> str:

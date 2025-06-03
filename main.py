@@ -165,13 +165,28 @@ async def generate_social_content(progress=None):
         progress = gr.Progress()
 
     if not current_analysis:
-        return "❌ Please process a paper first.", "", "", ""
+        return "❌ Please process a paper first.", "", "", "", None, None, None, None
 
     try:
         progress(0.3, desc="Generating social media content...")
         current_tldr = await tldr_generator.process(current_analysis)
 
         progress(1.0, desc="Social content generated!")
+
+        # Prepare image updates - show image if available, hide if not
+        linkedin_img_update = gr.Image(
+            value=current_tldr.linkedin_image, visible=bool(current_tldr.linkedin_image)
+        )
+        twitter_img_update = gr.Image(
+            value=current_tldr.twitter_image, visible=bool(current_tldr.twitter_image)
+        )
+        facebook_img_update = gr.Image(
+            value=current_tldr.facebook_image, visible=bool(current_tldr.facebook_image)
+        )
+        instagram_img_update = gr.Image(
+            value=current_tldr.instagram_image,
+            visible=bool(current_tldr.instagram_image),
+        )
 
         return (
             current_tldr.linkedin_post,
@@ -183,12 +198,26 @@ async def generate_social_content(progress=None):
             ),
             current_tldr.facebook_post,
             current_tldr.instagram_caption,
+            linkedin_img_update,
+            twitter_img_update,
+            facebook_img_update,
+            instagram_img_update,
         )
 
     except Exception as e:
         # Consider more specific exception handling
         error_msg = f"❌ Error generating social content: {e!s}"
-        return error_msg, error_msg, error_msg, error_msg
+        hidden_img = gr.Image(visible=False)
+        return (
+            error_msg,
+            error_msg,
+            error_msg,
+            error_msg,
+            hidden_img,
+            hidden_img,
+            hidden_img,
+            hidden_img,
+        )
 
 
 async def generate_poster_content(template_type, progress=None):
@@ -412,27 +441,57 @@ def create_interface():
 
             with gr.Row():
                 with gr.Column():
+                    gr.Markdown("### LinkedIn")
                     linkedin_output = gr.Textbox(
                         label="LinkedIn Post",
                         lines=5,
                         show_copy_button=True,
                     )
+                    linkedin_image = gr.Image(
+                        label="LinkedIn Image",
+                        show_label=True,
+                        show_download_button=True,
+                        visible=False,
+                    )
+
+                    gr.Markdown("### Twitter")
                     twitter_output = gr.Textbox(
                         label="Twitter Thread",
                         lines=5,
                         show_copy_button=True,
                     )
+                    twitter_image = gr.Image(
+                        label="Twitter Image",
+                        show_label=True,
+                        show_download_button=True,
+                        visible=False,
+                    )
 
                 with gr.Column():
+                    gr.Markdown("### Facebook")
                     facebook_output = gr.Textbox(
                         label="Facebook Post",
                         lines=5,
                         show_copy_button=True,
                     )
+                    facebook_image = gr.Image(
+                        label="Facebook Image",
+                        show_label=True,
+                        show_download_button=True,
+                        visible=False,
+                    )
+
+                    gr.Markdown("### Instagram")
                     instagram_output = gr.Textbox(
                         label="Instagram Caption",
                         lines=5,
                         show_copy_button=True,
+                    )
+                    instagram_image = gr.Image(
+                        label="Instagram Image",
+                        show_label=True,
+                        show_download_button=True,
+                        visible=False,
                     )
 
         with gr.Tab("🎨 Poster Generation"):
@@ -504,6 +563,10 @@ def create_interface():
                 twitter_output,
                 facebook_output,
                 instagram_output,
+                linkedin_image,
+                twitter_image,
+                facebook_image,
+                instagram_image,
             ],
         )
 
