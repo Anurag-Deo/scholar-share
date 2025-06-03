@@ -13,7 +13,8 @@ class TLDRGeneratorAgent(BaseAgent):
         Create a professional LinkedIn post about this research:
         
         Title: {analysis.title}
-        Key Findings: {", ".join(analysis.key_findings[:2])}
+        Key Findings: {", ".join(analysis.key_findings)}
+        Methodology: {analysis.methodology}
         
         Requirements:
         - Professional tone
@@ -21,6 +22,8 @@ class TLDRGeneratorAgent(BaseAgent):
         - Include relevant hashtags
         - Encourage engagement
         - Highlight practical implications
+        Make sure to include the key findings and methodology in bullet fashion.
+        Don't include any other information except the post content. No additional headers or ending text in the response.
         """
 
         # Twitter Thread
@@ -29,12 +32,16 @@ class TLDRGeneratorAgent(BaseAgent):
         
         Title: {analysis.title}
         Key Findings: {", ".join(analysis.key_findings)}
-        
+        Methodology: {analysis.methodology}
+
         Requirements:
         - Each tweet max 280 characters
         - Start with hook
         - Include thread numbers (1/n)
         - End with call to action
+
+        Make sure to include the key findings and methodology.
+        Don't include any other information except the thread content. No additional headers or ending text in the response.
         """
 
         # Facebook Post
@@ -42,13 +49,17 @@ class TLDRGeneratorAgent(BaseAgent):
         Create an engaging Facebook post about this research:
         
         Title: {analysis.title}
-        Key Finding: {analysis.key_findings[0] if analysis.key_findings else analysis.conclusion}
-        
+        Key Finding: {analysis.key_findings if analysis.key_findings else analysis.conclusion}
+        Methodology: {analysis.methodology}
+
         Requirements:
         - Conversational tone
         - Ask questions to encourage comments
         - Include emojis appropriately
         - 500 characters max
+
+        Make sure to include the key findings and methodology.
+        Don't include any other information except the post content. No additional headers or ending text in the response.
         """
 
         # Instagram Caption
@@ -56,14 +67,18 @@ class TLDRGeneratorAgent(BaseAgent):
         Create an Instagram caption about this research:
         
         Title: {analysis.title}
-        Key Finding: {analysis.key_findings[0] if analysis.key_findings else analysis.conclusion}
-        
+        Key Finding: {analysis.key_findings if analysis.key_findings else analysis.conclusion}
+        Methodology: {analysis.methodology}
+
         Requirements:
         - Visual-friendly language
         - Include relevant emojis
         - Use line breaks for readability
         - Include hashtags
         - 2200 characters max
+
+        Make sure to include the key findings and methodology.
+        Don't include any other information except the caption content. No additional headers or ending text in the response.
         """
 
         # Generate all content

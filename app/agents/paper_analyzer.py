@@ -46,7 +46,7 @@ class PaperAnalyzerAgent(BaseAgent):
         ]
 
         response = await self.generate_response(messages, temperature=0.3)
-        print(f"Raw response: {response}")  # Debugging line
+        # print(f"Raw response: {response}")  # Debugging line
 
         try:
             # Extract JSON from response by removing markdown code blocks

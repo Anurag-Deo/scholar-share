@@ -4,7 +4,7 @@ from app.models.schemas import BlogContent, PaperAnalysis
 
 class BlogGeneratorAgent(BaseAgent):
     def __init__(self):
-        super().__init__("BlogGenerator", model_type="heavy")
+        super().__init__("BlogGenerator", model_type="light")
 
     async def process(self, analysis: PaperAnalysis) -> BlogContent:
         """Generate beginner-friendly blog content from paper analysis"""
@@ -36,7 +36,6 @@ class BlogGeneratorAgent(BaseAgent):
         - Engaging introduction
         - Main sections with clear headings
         - Conclusion with key takeaways
-        - Suggested tags for DEV.to
 
         Make it interesting for a general audience while maintaining scientific accuracy.
         Don't include any other information except the blog post content. No additional headers or ending text in the response.
