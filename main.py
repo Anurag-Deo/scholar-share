@@ -3,6 +3,7 @@ from pathlib import Path
 from typing import Optional
 
 import gradio as gr
+from gradio_pdf import PDF
 from app.agents.blog_generator import BlogGeneratorAgent
 from app.agents.paper_analyzer import PaperAnalyzerAgent
 from app.agents.poster_generator import PosterGeneratorAgent
@@ -175,13 +176,16 @@ async def generate_social_content(progress=None):
 
         # Prepare image updates - show image if available, hide if not
         linkedin_img_update = gr.Image(
-            value=current_tldr.linkedin_image, visible=bool(current_tldr.linkedin_image)
+            value=current_tldr.linkedin_image,
+            visible=bool(current_tldr.linkedin_image),
         )
         twitter_img_update = gr.Image(
-            value=current_tldr.twitter_image, visible=bool(current_tldr.twitter_image)
+            value=current_tldr.twitter_image,
+            visible=bool(current_tldr.twitter_image),
         )
         facebook_img_update = gr.Image(
-            value=current_tldr.facebook_image, visible=bool(current_tldr.facebook_image)
+            value=current_tldr.facebook_image,
+            visible=bool(current_tldr.facebook_image),
         )
         instagram_img_update = gr.Image(
             value=current_tldr.instagram_image,
@@ -227,32 +231,62 @@ async def generate_poster_content(template_type, orientation, progress=None):
         progress = gr.Progress()
 
     if not current_analysis:
-        return "❌ Please process a paper first.", ""
+        return (
+            "❌ Please process a paper first.",
+            "",  # For latex_output
+            PDF(visible=False),  # For poster_pdf_preview
+            gr.DownloadButton(visible=False),  # For download_pdf_btn
+            gr.DownloadButton(visible=False),  # For download_latex_btn
+        )
 
     try:
         progress(0.3, desc="Generating poster...")
-        current_poster = await poster_generator.process(current_analysis, template_type, orientation)
+        current_poster = await poster_generator.process(
+            current_analysis, template_type, orientation,
+        )
 
         progress(0.8, desc="Compiling LaTeX...")
 
-        poster_info = f"""
-        **Poster Generated Successfully!**
-        
-        **Template:** {template_type.upper()}
-        **PDF Path:** {current_poster.pdf_path if current_poster.pdf_path else "Compilation in progress..."}
-        
-        **LaTeX Code Preview:**
-        ```
-        {current_poster.latex_code[:300]}...
-        ```
-        """
+        # Initialize updates for PDF preview and download button
+        pdf_preview_update = PDF(visible=False)
+        pdf_download_btn_update = gr.DownloadButton(visible=False)
+
+        if current_poster.pdf_path and Path(current_poster.pdf_path).exists():
+            pdf_path_str = str(current_poster.pdf_path)
+            pdf_preview_update = PDF(
+                value=pdf_path_str,
+                visible=True,
+                label="Generated Poster PDF",
+                # height=700 # Optional: Match height if set in create_interface
+            )
+            pdf_download_btn_update = gr.DownloadButton(
+                label="📥 Download PDF",
+                value=pdf_path_str,
+                visible=True,
+            )
+
+        # Get LaTeX download button update
+        latex_download_btn_update = (
+            await download_latex_code()
+        )  # This function already returns a DownloadButton update
 
         progress(1.0, desc="Poster ready!")
-        return poster_info, current_poster.latex_code
+        return (
+            "✅ Poster generated successfully!",  # For poster_status
+            current_poster.latex_code,  # For latex_output (string updates gr.Code value)
+            pdf_preview_update,  # For poster_pdf_preview (PDF component update)
+            pdf_download_btn_update,  # For download_pdf_btn (DownloadButton component update)
+            latex_download_btn_update,  # For download_latex_btn (DownloadButton component update)
+        )
 
     except Exception as e:
-        # Consider more specific exception handling
-        return f"❌ Error generating poster: {e!s}", ""
+        return (
+            f"❌ Error generating poster: {e!s}",
+            "",  # For latex_output
+            PDF(visible=False),  # For poster_pdf_preview
+            gr.DownloadButton(visible=False),  # For download_pdf_btn
+            gr.DownloadButton(visible=False),  # For download_latex_btn
+        )
 
 
 async def publish_to_devto(publish_now):
@@ -360,6 +394,26 @@ async def download_blog_markdown():
 
     except OSError:
         return None
+
+
+async def download_latex_code():
+    """Generate downloadable LaTeX code as a file."""
+    if not current_poster:
+        return gr.DownloadButton(visible=False)
+
+    try:
+        # Save LaTeX code to outputs directory
+        output_path = Path("outputs/posters/poster_latex.tex")
+        output_path.write_text(current_poster.latex_code, encoding="utf-8")
+
+        return gr.DownloadButton(
+            label="📥 Download LaTeX",
+            value=str(output_path),
+            visible=True,
+        )
+
+    except OSError:
+        return gr.DownloadButton(visible=False)
 
 
 # Create Gradio Interface
@@ -515,10 +569,33 @@ def create_interface():
                     )
 
                 with gr.Column():
-                    poster_output = gr.Markdown(label="Poster Information")
+                    poster_status = gr.Textbox(label="Status", interactive=False)
 
+            # Modified layout for poster output and download buttons
             with gr.Row():
-                latex_output = gr.Code(label="LaTeX Code", language="latex")
+                with gr.Column(
+                    scale=2
+                ):  # Column for PDF Preview and its Download Button
+                    poster_pdf_preview = PDF(  # Changed from gr.File to PDF for preview
+                        label="Generated Poster PDF",
+                        visible=False,
+                        # height=700  # Optional: Uncomment and set a height for the PDF preview
+                    )
+                    download_pdf_btn = gr.DownloadButton(  # Moved here
+                        label="📥 Download PDF",
+                        visible=False,
+                    )
+                with gr.Column(
+                    scale=1
+                ):  # Column for LaTeX Code and its Download Button
+                    latex_output = gr.Code(
+                        label="LaTeX Code",
+                        language="latex",
+                    )
+                    download_latex_btn = gr.DownloadButton(  # Moved here
+                        label="📥 Download LaTeX",
+                        visible=False,
+                    )
 
         with gr.Tab("🚀 Publishing"):
             gr.Markdown("## Publish Content to Platforms")
@@ -578,7 +655,13 @@ def create_interface():
         generate_poster_btn.click(
             fn=generate_poster_content,
             inputs=[template_dropdown, orientation_dropdown],
-            outputs=[poster_output, latex_output],
+            outputs=[
+                poster_status,
+                latex_output,
+                poster_pdf_preview,  # Maps to the PDF component
+                download_pdf_btn,  # Maps to the PDF download button
+                download_latex_btn,  # Maps to the LaTeX download button
+            ],
         )
 
         publish_draft_btn.click(
