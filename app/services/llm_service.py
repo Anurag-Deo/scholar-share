@@ -15,11 +15,16 @@ class LLMService:
             model_name = settings.HEAVY_MODEL_NAME
             api_key = settings.HEAVY_MODEL_API_KEY
             base_url = settings.HEAVY_MODEL_BASE_URL
-        else:
+        elif model_type == "light":
             provider = settings.LIGHT_MODEL_PROVIDER
             model_name = settings.LIGHT_MODEL_NAME
             api_key = settings.LIGHT_MODEL_API_KEY
             base_url = settings.LIGHT_MODEL_BASE_URL
+        elif model_type == "coding":
+            provider = settings.CODING_MODEL_PROVIDER
+            model_name = settings.CODING_MODEL_NAME
+            api_key = settings.CODING_MODEL_API_KEY
+            base_url = settings.CODING_MODEL_BASE_URL
 
         if not api_key:
             raise ValueError(

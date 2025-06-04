@@ -20,6 +20,11 @@ class Settings:
     LIGHT_MODEL_API_KEY: str = os.getenv("LIGHT_MODEL_API_KEY", "")
     LIGHT_MODEL_BASE_URL: str | None = os.getenv("LIGHT_MODEL_BASE_URL")
 
+    CODING_MODEL_PROVIDER: str = os.getenv("CODING_MODEL_PROVIDER", "openai")
+    CODING_MODEL_NAME: str = os.getenv("CODING_MODEL_NAME", "gpt-4-1106-preview")
+    CODING_MODEL_API_KEY: str = os.getenv("CODING_MODEL_API_KEY", "")
+    CODING_MODEL_BASE_URL: str | None = os.getenv("CODING_MODEL_BASE_URL", "https://api.openai.com/v1/chat/completions")
+
     # Image Generation
     IMAGE_GEN_API_KEY: str = os.getenv("IMAGE_GEN_API_KEY", "")
     IMAGE_GEN_BASE_URL: str | None = os.getenv("IMAGE_GEN_BASE_URL", "https://api.openai.com/v1/images/generations")

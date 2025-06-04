@@ -8,16 +8,26 @@ from app.models.schemas import PaperAnalysis, PosterContent
 
 class PosterGeneratorAgent(BaseAgent):
     def __init__(self):
-        super().__init__("PosterGenerator", model_type="heavy")
+        super().__init__("PosterGenerator", model_type="coding")
         self.template_dir = "app/templates/poster_templates"
 
     async def process(
-        self, analysis: PaperAnalysis, template_type: str = "ieee"
+        self, analysis: PaperAnalysis, template_type: str = "ieee", orientation: str = "landscape",
     ) -> PosterContent:
         """Generate academic conference poster"""
+
+        # tikzdocumentation
+        tikzdocumentation = ""
+        with open(
+            os.path.join(self.template_dir, "tikzposter.md"),
+            "r",
+            encoding="utf-8",
+        ) as f:
+            tikzdocumentation = f.read()
         # Generate LaTeX content
         latex_prompt = f"""
         Generate LaTeX code for an academic conference poster using the {template_type} style.
+        The poster should be suitable for a {orientation} orientation and include the following sections:
         
         Paper Details:
         Title: {analysis.title}
@@ -37,6 +47,20 @@ class PosterGeneratorAgent(BaseAgent):
         - Make it visually appealing and readable
         
         Generate complete LaTeX code that can be compiled directly.
+        Use the tikzposter package for a modern academic poster design.
+        The poster should be structured with clear sections and headings.
+        Poster should be aesthetically pleasing with good theme and color choices. Given the documentation below, try to make the poster visually appealing and professional.
+        MAKE SURE THAT NONE OF THE SECTIONS ARE EMPTY OR MISSING OR GOES OUT OF THE POSTER.
+        For you reference here is the documentation for the tikzposter package:
+        {tikzdocumentation}
+        
+        Make sure you give your ouptput just a tex code block starting with ```latex and ending with ```.
+        Do not include any other text or explanations.
+        Here is an example of a simple poster template:
+        ```latex
+        # Your code goes here
+        ```
+
         """
 
         messages = [
@@ -69,7 +93,7 @@ class PosterGeneratorAgent(BaseAgent):
     def _clean_latex_code(self, latex_code: str) -> str:
         """Clean and validate LaTeX code"""
         # Remove markdown code block markers if present
-        latex_code = latex_code.replace("```", "")
+        latex_code = latex_code.replace("```latex", "").replace("```", "")
 
         # Ensure document structure
         if "\\documentclass" not in latex_code:

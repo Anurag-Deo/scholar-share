@@ -220,7 +220,7 @@ async def generate_social_content(progress=None):
         )
 
 
-async def generate_poster_content(template_type, progress=None):
+async def generate_poster_content(template_type, orientation, progress=None):
     """Generate poster content from analysis."""
     global current_analysis, current_poster
     if progress is None:
@@ -231,7 +231,7 @@ async def generate_poster_content(template_type, progress=None):
 
     try:
         progress(0.3, desc="Generating poster...")
-        current_poster = await poster_generator.process(current_analysis, template_type)
+        current_poster = await poster_generator.process(current_analysis, template_type, orientation)
 
         progress(0.8, desc="Compiling LaTeX...")
 
@@ -504,6 +504,11 @@ def create_interface():
                         value="ieee",
                         label="Poster Template Style",
                     )
+                    orientation_dropdown = gr.Dropdown(
+                        choices=["landscape", "portrait"],
+                        value="landscape",
+                        label="Poster Orientation",
+                    )
                     generate_poster_btn = gr.Button(
                         "🎨 Generate Poster",
                         variant="primary",
@@ -572,7 +577,7 @@ def create_interface():
 
         generate_poster_btn.click(
             fn=generate_poster_content,
-            inputs=[template_dropdown],
+            inputs=[template_dropdown, orientation_dropdown],
             outputs=[poster_output, latex_output],
         )
 
