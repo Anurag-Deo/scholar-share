@@ -34,41 +34,44 @@ ScholarShare processes research papers through a series of AI agents and service
 
 ```mermaid
 graph TD
-    A[User Input: PDF/URL/Text] --> B{Paper Processing Service};
-    B -- Extracted Content --> C[Paper Analyzer Agent];
-    C -- Analysis Data --> D{Core Analysis Object};
+    %% Nodes
+    A[User Input: PDF/URL/Text] --> B{Paper Processing Service}
+    B -- Extracted Content --> C[Paper Analyzer Agent]
+    C -- Analysis Data --> D{Core Analysis Object}
 
-    D --> E[Blog Generator Agent];
-    E -- Blog Data --> F[Blog Output: Markdown/DEV.to];
+    D --> E[Blog Generator Agent]
+    E -- Blog Data --> F[Blog Output: Markdown / DEV.to]
 
-    D --> G[TLDR/Social Media Agent];
-    G -- Social Media Data --> H[Social Media Posts & Images];
+    D --> G[TLDR / Social Media Agent]
+    G -- Social Media Data --> H[Social Media Posts & Images]
 
-    D --> I[Poster Generator Agent];
-    I -- Poster Data & Template --> J[Poster Output: LaTeX/PDF];
+    D --> I[Poster Generator Agent]
+    I -- Poster Data & Template --> J[Poster Output: LaTeX / PDF]
 
-    subgraph User Interface (Gradio)
+    subgraph "User Interface (Gradio)"
         direction LR
-        K[Upload/Input Section] --> A;
-        F --> L[Blog Display & Publish];
-        H --> M[Social Media Display];
-        J --> N[Poster Display & Download];
+        K[Upload/Input Section] --> A
+        F --> L[Blog Display & Publish]
+        H --> M[Social Media Display]
+        J --> N[Poster Display & Download]
     end
 
-    style A fill:#f9f,stroke:#333,stroke-width:2px
-    style B fill:#ccf,stroke:#333,stroke-width:2px
-    style C fill:#ccf,stroke:#333,stroke-width:2px
-    style D fill:#ff9,stroke:#333,stroke-width:2px
-    style E fill:#ccf,stroke:#333,stroke-width:2px
-    style G fill:#ccf,stroke:#333,stroke-width:2px
-    style I fill:#ccf,stroke:#333,stroke-width:2px
-    style F fill:#9cf,stroke:#333,stroke-width:2px
-    style H fill:#9cf,stroke:#333,stroke-width:2px
-    style J fill:#9cf,stroke:#333,stroke-width:2px
-    style K fill:#lightgrey,stroke:#333,stroke-width:2px
-    style L fill:#lightgrey,stroke:#333,stroke-width:2px
-    style M fill:#lightgrey,stroke:#333,stroke-width:2px
-    style N fill:#lightgrey,stroke:#333,stroke-width:2px
+    %% Node Styles: Better readability on dark background
+    style A fill:#ffffff,stroke:#000,stroke-width:2px,color:#000
+    style B fill:#d0e1ff,stroke:#000,stroke-width:2px,color:#000
+    style C fill:#d0e1ff,stroke:#000,stroke-width:2px,color:#000
+    style D fill:#ffff99,stroke:#000,stroke-width:2px,color:#000
+    style E fill:#e1f5c4,stroke:#000,stroke-width:2px,color:#000
+    style G fill:#e1f5c4,stroke:#000,stroke-width:2px,color:#000
+    style I fill:#e1f5c4,stroke:#000,stroke-width:2px,color:#000
+    style F fill:#cceeff,stroke:#000,stroke-width:2px,color:#000
+    style H fill:#cceeff,stroke:#000,stroke-width:2px,color:#000
+    style J fill:#cceeff,stroke:#000,stroke-width:2px,color:#000
+    style K fill:#dddddd,stroke:#000,stroke-width:2px,color:#000
+    style L fill:#eeeeee,stroke:#000,stroke-width:2px,color:#000
+    style M fill:#eeeeee,stroke:#000,stroke-width:2px,color:#000
+    style N fill:#eeeeee,stroke:#000,stroke-width:2px,color:#000
+
 ```
 
 ## 📁 Project Structure
@@ -86,7 +89,7 @@ graph TD
     R --> F6[Dockerfile]
     R --> F7[docker-compose.yml]
 
-    F1 --> S1[main.py (Gradio App)]
+    F1 --> S1[main.py Gradio App]
     F1 --> S2[app/]
     F1 --> S3[data/]
     F1 --> S4[outputs/]
@@ -110,11 +113,36 @@ graph TD
     A5 --> SV3[devto_service.py]
     A5 --> SV4[poster_service.py]
 
-    style R fill:#222,stroke:#fff,stroke-width:2px,color:#fff
-    style F1 fill:#333,stroke:#fff,stroke-width:1.5px,color:#fff
-    style S2 fill:#444,stroke:#fff,stroke-width:1px,color:#fff
-    style A1 fill:#555,stroke:#fff,stroke-width:0.5px,color:#fff
-    style A5 fill:#555,stroke:#fff,stroke-width:0.5px,color:#fff
+    %% Light styles for dark mode visibility
+    style R fill:#ffffff,stroke:#000,stroke-width:2px,color:#000
+    style F1 fill:#e8f0fe,stroke:#000,stroke-width:1.5px,color:#000
+    style F2 fill:#f9f9f9,stroke:#000,stroke-width:1px,color:#000
+    style F3 fill:#f9f9f9,stroke:#000,stroke-width:1px,color:#000
+    style F4 fill:#f9f9f9,stroke:#000,stroke-width:1px,color:#000
+    style F5 fill:#f9f9f9,stroke:#000,stroke-width:1px,color:#000
+    style F6 fill:#f9f9f9,stroke:#000,stroke-width:1px,color:#000
+    style F7 fill:#f9f9f9,stroke:#000,stroke-width:1px,color:#000
+    style S1 fill:#f1f8e9,stroke:#000,stroke-width:1px,color:#000
+    style S2 fill:#fff3e0,stroke:#000,stroke-width:1px,color:#000
+    style S3 fill:#f1f8e9,stroke:#000,stroke-width:1px,color:#000
+    style S4 fill:#f1f8e9,stroke:#000,stroke-width:1px,color:#000
+    style S5 fill:#f1f8e9,stroke:#000,stroke-width:1px,color:#000
+    style A1 fill:#ffe0b2,stroke:#000,stroke-width:0.5px,color:#000
+    style A2 fill:#ffe0b2,stroke:#000,stroke-width:0.5px,color:#000
+    style A3 fill:#ffe0b2,stroke:#000,stroke-width:0.5px,color:#000
+    style A4 fill:#ffe0b2,stroke:#000,stroke-width:0.5px,color:#000
+    style A5 fill:#ffe0b2,stroke:#000,stroke-width:0.5px,color:#000
+    style A6 fill:#ffe0b2,stroke:#000,stroke-width:0.5px,color:#000
+    style A7 fill:#ffe0b2,stroke:#000,stroke-width:0.5px,color:#000
+    style AG1 fill:#fff,stroke:#000,stroke-width:0.5px,color:#000
+    style AG2 fill:#fff,stroke:#000,stroke-width:0.5px,color:#000
+    style AG3 fill:#fff,stroke:#000,stroke-width:0.5px,color:#000
+    style AG4 fill:#fff,stroke:#000,stroke-width:0.5px,color:#000
+    style SV1 fill:#fff,stroke:#000,stroke-width:0.5px,color:#000
+    style SV2 fill:#fff,stroke:#000,stroke-width:0.5px,color:#000
+    style SV3 fill:#fff,stroke:#000,stroke-width:0.5px,color:#000
+    style SV4 fill:#fff,stroke:#000,stroke-width:0.5px,color:#000
+
 ```
 
 ## 🚀 Getting Started
