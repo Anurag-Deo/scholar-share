@@ -3,24 +3,29 @@ import subprocess
 import tempfile
 
 from app.agents.base_agent import BaseAgent
+from app.agents.poster_layout_analyzer import PosterLayoutAnalyzerAgent
 from app.models.schemas import PaperAnalysis, PosterContent
+from app.services.pdf_to_image_service import pdf_to_image_service
 
 
 class PosterGeneratorAgent(BaseAgent):
     def __init__(self):
         super().__init__("PosterGenerator", model_type="coding")
         self.template_dir = "app/templates/poster_templates"
+        self.layout_analyzer = PosterLayoutAnalyzerAgent()
+        self.max_fix_attempts = 2  # Maximum attempts to fix layout issues
 
     async def process(
-        self, analysis: PaperAnalysis, template_type: str = "ieee", orientation: str = "landscape",
+        self,
+        analysis: PaperAnalysis,
+        template_type: str = "ieee",
+        orientation: str = "landscape",
     ) -> PosterContent:
         """Generate academic conference poster"""
-
         # tikzdocumentation
         tikzdocumentation = ""
         with open(
             os.path.join(self.template_dir, "tikzposter.md"),
-            "r",
             encoding="utf-8",
         ) as f:
             tikzdocumentation = f.read()
@@ -54,7 +59,7 @@ class PosterGeneratorAgent(BaseAgent):
         For you reference here is the documentation for the tikzposter package:
         {tikzdocumentation}
         
-        Make sure you give your ouptput just a tex code block starting with ```latex and ending with ```.
+        Make sure you give your ouptut just a tex code block starting with ```latex and ending with ```.
         Do not include any other text or explanations.
         Here is an example of a simple poster template:
         ```latex
@@ -74,8 +79,12 @@ class PosterGeneratorAgent(BaseAgent):
         latex_code = await self.generate_response(messages, temperature=0.3)
         latex_code = self._clean_latex_code(latex_code)
 
-        # Compile to PDF
-        pdf_path = await self._compile_latex(latex_code, analysis.title)
+        # Compile to PDF and analyze layout
+        pdf_path, final_latex_code = await self._compile_and_analyze_poster(
+            latex_code,
+            analysis.title,
+            analysis,
+        )
 
         return PosterContent(
             template_type=template_type,
@@ -86,7 +95,7 @@ class PosterGeneratorAgent(BaseAgent):
             results=analysis.results,
             conclusion=analysis.conclusion,
             figures=[],  # Will be populated if figures are detected
-            latex_code=latex_code,
+            latex_code=final_latex_code,
             pdf_path=pdf_path,
         )
 
@@ -193,3 +202,67 @@ class PosterGeneratorAgent(BaseAgent):
         except Exception as e:
             print(f"Fallback poster generation error: {e}")
             return "outputs/posters/poster_generation_failed.txt"
+
+    async def _compile_and_analyze_poster(
+        self,
+        latex_code: str,
+        title: str,
+        analysis: PaperAnalysis,
+    ) -> tuple[str, str]:
+        """
+        Compile LaTeX to PDF and analyze layout, fixing issues if needed.
+
+        Returns:
+            tuple: (pdf_path, final_latex_code)
+
+        """
+        current_latex = latex_code
+        attempt = 0
+
+        while attempt <= self.max_fix_attempts:
+            # Compile to PDF
+            pdf_path = await self._compile_latex(current_latex, title)
+
+            if not pdf_path:
+                print(f"PDF compilation failed on attempt {attempt + 1}")
+                break
+
+            # Convert PDF to image for analysis (optimized resolution for vision model)
+            poster_image_path = await pdf_to_image_service.convert_pdf_to_image(
+                pdf_path,
+                max_width=800,  # Optimized for vision model token costs
+            )
+
+            if not poster_image_path:
+                print("Could not convert PDF to image for analysis")
+                return pdf_path, current_latex
+
+            # Analyze poster layout
+            (
+                fits_properly,
+                analysis_message,
+                fixed_latex,
+            ) = await self.layout_analyzer.analyze_poster_layout(
+                poster_image_path,
+                current_latex,
+                title,
+            )
+
+            print(f"Poster layout analysis (attempt {attempt + 1}): {analysis_message}")
+
+            if fits_properly:
+                print("Poster layout is satisfactory!")
+                return pdf_path, current_latex
+
+            if fixed_latex and attempt < self.max_fix_attempts:
+                print(f"Applying layout fixes (attempt {attempt + 1})...")
+                current_latex = self._clean_latex_code(fixed_latex)
+                attempt += 1
+            else:
+                print(
+                    "Max fix attempts reached or no fix available. Using current version.",
+                )
+                return pdf_path, current_latex
+
+        # If we reach here, return the last attempt
+        return pdf_path, current_latex

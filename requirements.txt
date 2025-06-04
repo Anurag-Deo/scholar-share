@@ -20,3 +20,6 @@ tempfile
 shutil
 aiohttp==3.9.0
 pillow==10.0.1
+# PDF to image conversion packages
+pymupdf==1.24.5
+pdf2image==1.17.0

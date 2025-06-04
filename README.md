@@ -1,170 +1,267 @@
 # 🎓 ScholarShare - AI-Powered Research Dissemination Platform
 
-Transform complex research papers into accessible, multi-format content for broader audience engagement.
+[![Python Version](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/downloads/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](http://makeapullrequest.com)
+[![Code style: ruff](https://img.shields.io/badge/code%20style-ruff-000000.svg)](https://github.com/charliermarsh/ruff)
+
+**ScholarShare** is an innovative platform designed to bridge the gap between complex academic research and broader public understanding. It leverages cutting-edge AI to transform dense research papers into accessible and engaging content formats, including blog posts, social media updates, and conference posters. Our goal is to empower researchers to maximize the impact of their work and foster a more informed society. 🚀
 
 ## ✨ Features
 
-### 📄 Paper Analysis & Processing
-- **Multi-format Input**: Upload PDFs, paste URLs (arXiv, etc.), or input text directly
-- **Intelligent Analysis**: Extract key findings, methodology, results, and conclusions
-- **Complexity Assessment**: Automatically determine paper complexity level
-- **Technical Term Extraction**: Identify and explain technical terminology
+*   📄 **Multi-Format Paper Ingestion:** Upload PDFs, provide URLs (e.g., arXiv links), or paste raw text.
+*   🧠 **In-Depth AI Analysis:** Extracts key information: title, authors, abstract, methodology, findings, results, conclusion, complexity, and technical terms.
+*   📝 **Automated Blog Generation:** Creates beginner-friendly blog posts from research papers, complete with title, content, tags, and estimated reading time.
+*   📱 **Social Media Content Creation:** Generates platform-specific content (LinkedIn, Twitter, Facebook, Instagram) including text posts and relevant images.
+*   🎨 **Academic Poster Generation:** Produces LaTeX-based conference posters with customizable templates (IEEE, ACM, Nature) and orientations (landscape, portrait).
+*   🚀 **Direct Publishing (DEV.to):** Seamlessly publish generated blog content to DEV.to as drafts or immediately.
+*   📥 **Downloadable Outputs:** All generated content (analysis summaries, blog posts, LaTeX code, PDFs) can be easily downloaded.
+*   🌐 **User-Friendly Interface:** Built with Gradio for an intuitive and interactive experience.
 
-### 📝 Content Generation
-- **Blog Generation**: Create beginner-friendly blog posts with SEO optimization
-- **Social Media Content**: Generate platform-specific posts for LinkedIn, Twitter, Facebook, and Instagram
-- **🎨 NEW: AI-Generated Images**: Automatically create custom images for each social media platform
-- **Academic Posters**: Generate LaTeX-based conference posters (IEEE, ACM, Nature styles)
+## 🛠️ Tech Stack
 
-### 🚀 Publishing & Sharing
-- **Dev.to Integration**: Publish blog posts directly to Dev.to
-- **Download Options**: Export content as Markdown files
-- **Multi-Platform Optimization**: Content tailored for each platform's audience
+*   🐍 **Backend:** Python
+*   🤖 **AI/ML:** Various LLM services (via `app.services.llm_service`)
+*   🖼️ **Web Framework/UI:** Gradio (`gradio`, `gradio-pdf`)
+*   📄 **PDF Processing:** `pdf_service` (details depend on implementation, e.g., PyMuPDF, pdfminer)
+*   📜 **LaTeX Compilation:** (Assumed, for poster generation, e.g., `pdflatex` via `poster_service`)
+*   🔗 **API Integration:** DEV.to API (via `devto_service`)
+*   📦 **Packaging:** Poetry (implied by `pyproject.toml` and `uv.lock`)
 
-## 🆕 Image Generation Feature
+## 🌊 Architecture & Workflow
 
-ScholarShare now automatically generates custom images for social media posts using AI:
+ScholarShare processes research papers through a series of AI agents and services to generate various content formats.
 
-### 🎨 Platform-Specific Images
-- **LinkedIn**: Professional, clean, business-appropriate imagery
-- **Twitter**: Eye-catching, modern, tech-focused visuals  
-- **Facebook**: Engaging, accessible, community-friendly images
-- **Instagram**: Vibrant, aesthetic, visual-first content
+```mermaid
+graph TD
+    A[User Input: PDF/URL/Text] --> B{Paper Processing Service};
+    B -- Extracted Content --> C[Paper Analyzer Agent];
+    C -- Analysis Data --> D{Core Analysis Object};
 
-### 🤖 AI-Powered Visual Creation
-1. **Smart Prompt Generation**: Uses GPT to create detailed visual prompts based on your research
-2. **DALL-E Integration**: Generates high-quality images using OpenAI's DALL-E model
-3. **Automatic Optimization**: Each image is tailored for its target platform's style and audience
+    D --> E[Blog Generator Agent];
+    E -- Blog Data --> F[Blog Output: Markdown/DEV.to];
 
-### 📁 Image Management
-- Images automatically saved to `outputs/images/`
-- Download images directly from the interface
-- Descriptive filenames for easy organization
+    D --> G[TLDR/Social Media Agent];
+    G -- Social Media Data --> H[Social Media Posts & Images];
 
-## 🚀 Quick Start
+    D --> I[Poster Generator Agent];
+    I -- Poster Data & Template --> J[Poster Output: LaTeX/PDF];
 
-### Prerequisites
-- Python 3.8+
-- OpenAI API key (for text and image generation)
+    subgraph User Interface (Gradio)
+        direction LR
+        K[Upload/Input Section] --> A;
+        F --> L[Blog Display & Publish];
+        H --> M[Social Media Display];
+        J --> N[Poster Display & Download];
+    end
 
-### Installation
-
-1. **Clone the repository**:
-   ```bash
-   git clone <repository-url>
-   cd scholarshare
-   ```
-
-2. **Install dependencies**:
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-3. **Set up environment variables**:
-   ```bash
-   cp .env.example .env
-   # Edit .env and add your API keys
-   ```
-
-4. **Run the application**:
-   ```bash
-   python main.py
-   ```
-
-5. **Open in browser**: Navigate to `http://localhost:7860`
-
-## 🔧 Configuration
-
-### Environment Variables
-```bash
-# Required: OpenAI API key for text generation
-LIGHT_MODEL_API_KEY=your-openai-api-key
-
-# Optional: Separate key for image generation
-IMAGE_GEN_API_KEY=your-openai-api-key
-
-# Optional: Image generation settings
-IMAGE_GEN_MODEL=dall-e-3
-IMAGE_GEN_IMAGE_SIZE=1024x1024
-IMAGE_GEN_IMAGE_QUALITY=standard
-IMAGE_GEN_IMAGE_STYLE=vivid
+    style A fill:#f9f,stroke:#333,stroke-width:2px
+    style B fill:#ccf,stroke:#333,stroke-width:2px
+    style C fill:#ccf,stroke:#333,stroke-width:2px
+    style D fill:#ff9,stroke:#333,stroke-width:2px
+    style E fill:#ccf,stroke:#333,stroke-width:2px
+    style G fill:#ccf,stroke:#333,stroke-width:2px
+    style I fill:#ccf,stroke:#333,stroke-width:2px
+    style F fill:#9cf,stroke:#333,stroke-width:2px
+    style H fill:#9cf,stroke:#333,stroke-width:2px
+    style J fill:#9cf,stroke:#333,stroke-width:2px
+    style K fill:#lightgrey,stroke:#333,stroke-width:2px
+    style L fill:#lightgrey,stroke:#333,stroke-width:2px
+    style M fill:#lightgrey,stroke:#333,stroke-width:2px
+    style N fill:#lightgrey,stroke:#333,stroke-width:2px
 ```
 
-### Testing Image Generation
-Run the included test script to verify image generation:
-```bash
-python test_image_generation.py
+## 📁 Project Structure
+
+A high-level overview of the ScholarShare project directory.
+
+```mermaid
+graph TD
+    R[ScholarShare Root]
+    R --> F1[scholarshare/]
+    R --> F2[1706.03762v7.pdf]
+    R --> F3[README.md]
+    R --> F4[requirements.txt]
+    R --> F5[pyproject.toml]
+    R --> F6[Dockerfile]
+    R --> F7[docker-compose.yml]
+
+    F1 --> S1[main.py (Gradio App)]
+    F1 --> S2[app/]
+    F1 --> S3[data/]
+    F1 --> S4[outputs/]
+    F1 --> S5[parsed_pdf_content.txt]
+
+    S2 --> A1[agents/]
+    S2 --> A2[config/]
+    S2 --> A3[database/]
+    S2 --> A4[models/]
+    S2 --> A5[services/]
+    S2 --> A6[templates/]
+    S2 --> A7[utils/]
+
+    A1 --> AG1[paper_analyzer.py]
+    A1 --> AG2[blog_generator.py]
+    A1 --> AG3[tldr_generator.py]
+    A1 --> AG4[poster_generator.py]
+
+    A5 --> SV1[pdf_service.py]
+    A5 --> SV2[llm_service.py]
+    A5 --> SV3[devto_service.py]
+    A5 --> SV4[poster_service.py]
+
+    style R fill:#222,stroke:#fff,stroke-width:2px,color:#fff
+    style F1 fill:#333,stroke:#fff,stroke-width:1.5px,color:#fff
+    style S2 fill:#444,stroke:#fff,stroke-width:1px,color:#fff
+    style A1 fill:#555,stroke:#fff,stroke-width:0.5px,color:#fff
+    style A5 fill:#555,stroke:#fff,stroke-width:0.5px,color:#fff
 ```
 
-## 📖 Usage Guide
+## 🚀 Getting Started
 
-### 1. Process a Research Paper
-- Upload a PDF file, paste an arXiv URL, or input text directly
-- Click "🔍 Analyze Paper" to extract key information
+### 📋 Prerequisites
 
-### 2. Generate Blog Content
-- Navigate to the "📝 Blog Generation" tab
-- Click "✍️ Generate Blog Content" for SEO-optimized articles
+*   Python 3.10+
+*   Poetry (for dependency management - recommended) or pip
+*   Access to a LaTeX distribution (e.g., TeX Live, MiKTeX) for poster generation.
+*   (Optional) Docker 🐳
 
-### 3. Create Social Media Content with Images
-- Go to the "📱 Social Media Content" tab
-- Click "📱 Generate Social Content"
-- Wait for both text and custom images to generate
-- Each platform gets optimized content and matching visuals
+### ⚙️ Installation
 
-### 4. Generate Academic Posters
-- Use the "🎨 Poster Generation" tab
-- Choose from IEEE, ACM, or Nature templates
-- Download LaTeX code and compiled PDFs
+1.  **Clone the repository:**
+    ```bash
+    git clone https://github.com/your-username/ScholarShare.git # Replace with actual repo URL
+    cd ScholarShare
+    ```
 
-### 5. Publish Content
-- Use the "🚀 Publishing" tab to share to Dev.to
-- Download all content as Markdown files
+2.  **Set up environment variables:**
+    Create a `.env` file in the `scholarshare/app/config/` directory or directly in `scholarshare/` if `settings.py` is configured to look there.
+    Populate it with necessary API keys and configurations (e.g., `OPENAI_API_KEY`, `DEVTO_API_KEY`).
+    Example `scholarshare/app/config/.env` (or `scholarshare/.env`):
+    ```env
+    OPENAI_API_KEY="your_openai_api_key"
+    DEVTO_API_KEY="your_devto_api_key"
+    # Other settings from settings.py
+    HOST="0.0.0.0"
+    PORT=7860
+    DEBUG=True
+    ```
+    *(Ensure `settings.py` loads these, e.g., using `python-dotenv`)*
 
-## 🏗️ Architecture
+3.  **Install dependencies:**
 
-```
-app/
-├── agents/          # AI agents for different content types
-├── services/        # External service integrations
-│   ├── image_service.py    # 🆕 AI image generation
-│   ├── llm_service.py      # LLM integration
-│   └── devto_service.py    # Publishing service
-├── models/          # Data schemas and models
-├── config/          # Application configuration
-└── utils/           # Helper utilities
-```
+    *   **Using Poetry (recommended):**
+        ```bash
+        poetry install
+        ```
 
-## 🎯 Platform-Specific Features
+    *   **Using pip and `requirements.txt`:**
+        ```bash
+        pip install -r requirements.txt
+        ```
+        *(Note: `requirements.txt` might need to be generated from `pyproject.toml` if not kept up-to-date: `poetry export -f requirements.txt --output requirements.txt --without-hashes`)*
 
-### LinkedIn
-- Professional tone and formatting
-- Business-focused imagery with clean design
-- Optimized for professional networking
+4.  **Ensure output directories exist:**
+    The application creates these, but you can pre-create them:
+    ```bash
+    mkdir -p scholarshare/outputs/posters
+    mkdir -p scholarshare/outputs/blogs
+    mkdir -p scholarshare/data
+    ```
 
-### Twitter
-- Thread format for longer content
-- Character limit optimization
-- Modern, tech-focused visuals
+### ▶️ Running the Application
 
-### Facebook
-- Conversational tone with engagement hooks
-- Community-friendly imagery
-- Question prompts for comments
+*   **Using Poetry:**
+    ```bash
+    cd scholarshare
+    poetry run python main.py
+    ```
 
-### Instagram
-- Visual-first captions with emojis
-- Vibrant, aesthetic imagery
-- Hashtag optimization
+*   **Using Python directly:**
+    ```bash
+    cd scholarshare
+    python main.py
+    ```
+
+The application will typically be available at `http://localhost:7860` or `http://0.0.0.0:7860`.
+
+### 🐳 Running with Docker (if `Dockerfile` and `docker-compose.yml` are configured)
+
+1.  **Build the Docker image:**
+    ```bash
+    docker-compose build
+    ```
+2.  **Run the container:**
+    ```bash
+    docker-compose up
+    ```
+    The application should be accessible as configured in `docker-compose.yml`.
+
+## 📖 Usage
+
+1.  **Navigate to the "Paper Input & Analysis" Tab:**
+    *   **Upload PDF:** Click "Upload PDF Paper" and select your research paper.
+    *   **Enter URL:** Paste a direct link to a PDF (e.g., an arXiv abstract page URL might work if the service can resolve it to a PDF, or a direct PDF link).
+    *   **Paste Text:** Copy and paste the raw text content of your paper.
+2.  **Analyze Paper:** Click the "🔍 Analyze Paper" button. Wait for the status to show "✅ Paper processed successfully!". The analysis summary will appear.
+3.  **Generate Blog Content:**
+    *   Go to the "📝 Blog Generation" tab.
+    *   Click "✍️ Generate Blog Content". The generated blog post will appear.
+    *   You can download it as Markdown.
+4.  **Generate Social Media Content:**
+    *   Go to the "📱 Social Media Content" tab.
+    *   Click "📱 Generate Social Content". Content for LinkedIn, Twitter, Facebook, and Instagram will be generated, along with associated images if applicable.
+5.  **Generate Poster:**
+    *   Go to the "🎨 Poster Generation" tab.
+    *   Select a "Poster Template Style" (e.g., IEEE, ACM).
+    *   Select "Poster Orientation" (landscape or portrait).
+    *   Click "🎨 Generate Poster". A PDF preview and LaTeX code will be displayed. You can download both.
+6.  **Publish to DEV.to:**
+    *   Go to the "🚀 Publishing" tab (ensure blog content is generated first).
+    *   Click "💾 Save as Draft" or "🚀 Publish Now". The status of the publication will be shown.
+
+## 🖼️ Screenshots / Demo
+
+*(Placeholder: Add screenshots of the Gradio interface for each tab and feature. A GIF demonstrating the workflow would be excellent here.)*
+
+**Example: Paper Input Tab**
+`[Image of Paper Input Tab]`
+
+**Example: Blog Generation Tab**
+`[Image of Blog Generation Tab]`
+
+**Example: Poster Preview**
+`[Image of Poster Preview]`
 
 ## 🤝 Contributing
 
-We welcome contributions! Please see our contributing guidelines for more information.
+Contributions are welcome! Whether it's bug fixes, feature enhancements, or documentation improvements, please feel free to:
 
-## 📄 License
+1.  **Fork the repository.**
+2.  **Create a new branch:** `git checkout -b feature/your-feature-name` or `bugfix/issue-number`.
+3.  **Make your changes.** Ensure your code follows the project's style guidelines (e.g., run `black .` for formatting).
+4.  **Write tests** for new features or bug fixes if applicable.
+5.  **Commit your changes:** `git commit -m "feat: Describe your feature"` or `fix: Describe your fix`.
+6.  **Push to the branch:** `git push origin feature/your-feature-name`.
+7.  **Open a Pull Request** against the `main` (or `develop`) branch.
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+Please provide a clear description of your changes in the PR.
 
-## 🆘 Support
+## 📜 License
 
-For questions, issues, or feature requests, please open an issue on GitHub or refer to our troubleshooting guide in `IMAGE_GENERATION_GUIDE.md`.
+This project is licensed under the **MIT License**. See the [LICENSE](LICENSE.md) file for details.
+*(Note: You'll need to create a `LICENSE.md` file with the MIT license text if it doesn't exist.)*
+
+## 📞 Contact & Support
+
+*   **Issues:** If you encounter any bugs or have feature requests, please [open an issue](https://github.com/your-username/ScholarShare/issues) on GitHub. <!-- Replace with actual repo URL -->
+*   **Maintainer:** [Your Name/Organization] - [your.email@example.com] <!-- Update with actual contact -->
+
+## 🙏 Acknowledgements
+
+*   The [Gradio](https://www.gradio.app/) team for the easy-to-use UI framework.
+*   Providers of the LLM services used for content generation.
+*   The open-source community for the various libraries and tools that make this project possible.
+
+---
+*This README was generated with assistance from an AI coding agent.*
