@@ -3,7 +3,6 @@ from pathlib import Path
 from typing import Optional
 
 import gradio as gr
-from gradio_pdf import PDF
 from app.agents.blog_generator import BlogGeneratorAgent
 from app.agents.paper_analyzer import PaperAnalyzerAgent
 from app.agents.poster_generator import PosterGeneratorAgent
@@ -12,6 +11,7 @@ from app.config.settings import settings
 from app.models.schemas import PaperInput
 from app.services.devto_service import devto_service
 from app.services.pdf_service import pdf_service
+from gradio_pdf import PDF
 
 # Initialize agents
 paper_analyzer = PaperAnalyzerAgent()
@@ -127,9 +127,10 @@ async def generate_blog_content(progress=None):
         progress = gr.Progress()
 
     if not current_analysis:
-        return "❌ Please process a paper first.", gr.update(
-            visible=False,
-            interactive=False,
+        return (
+            "❌ Please process a paper first.",
+            "",
+            gr.DownloadButton(visible=False),
         )
 
     try:
@@ -152,11 +153,19 @@ async def generate_blog_content(progress=None):
 **Reading Time:** {current_blog.reading_time} minutes"""
 
         progress(1.0, desc="Blog content generated!")
-        return blog_preview, gr.DownloadButton(visible=True)
+        return (
+            "✅ Blog content generated successfully!",
+            blog_preview,
+            gr.DownloadButton(visible=True),
+        )
 
     except Exception as e:
         # Consider more specific exception handling
-        return f"❌ Error generating blog: {e!s}", gr.DownloadButton(visible=False)
+        return (
+            f"❌ Error generating blog: {e!s}",
+            "",
+            gr.DownloadButton(visible=False),
+        )
 
 
 async def generate_social_content(progress=None):
@@ -242,7 +251,9 @@ async def generate_poster_content(template_type, orientation, progress=None):
     try:
         progress(0.3, desc="Generating poster...")
         current_poster = await poster_generator.process(
-            current_analysis, template_type, orientation,
+            current_analysis,
+            template_type,
+            orientation,
         )
 
         progress(0.8, desc="Compiling LaTeX...")
@@ -478,6 +489,9 @@ def create_interface():
                     )
 
                 with gr.Column():
+                    blog_status_output = gr.Textbox(
+                        label="Generation status", interactive=False
+                    )
                     blog_output = gr.Markdown(
                         label="Generated Blog Content",
                         max_height=600,
@@ -574,7 +588,7 @@ def create_interface():
             # Modified layout for poster output and download buttons
             with gr.Row():
                 with gr.Column(
-                    scale=2
+                    scale=2,
                 ):  # Column for PDF Preview and its Download Button
                     poster_pdf_preview = PDF(  # Changed from gr.File to PDF for preview
                         label="Generated Poster PDF",
@@ -586,7 +600,7 @@ def create_interface():
                         visible=False,
                     )
                 with gr.Column(
-                    scale=1
+                    scale=1,
                 ):  # Column for LaTeX Code and its Download Button
                     latex_output = gr.Code(
                         label="LaTeX Code",
@@ -630,7 +644,7 @@ def create_interface():
 
         generate_blog_btn.click(
             fn=generate_blog_content,
-            outputs=[blog_output, download_blog_btn],
+            outputs=[blog_status_output, blog_output, download_blog_btn],
         )
 
         download_blog_btn.click(

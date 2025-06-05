@@ -1,5 +1,6 @@
 from app.agents.base_agent import BaseAgent
 from app.models.schemas import BlogContent, PaperAnalysis
+from app.services.blog_image_service import blog_image_service
 
 
 class BlogGeneratorAgent(BaseAgent):
@@ -58,6 +59,29 @@ class BlogGeneratorAgent(BaseAgent):
         meta_description = self._generate_meta_description(analysis)
         reading_time = self._calculate_reading_time(content)
 
+        # Generate and embed images into the blog content
+        try:
+            print("Generating images for blog post...")
+            images = await blog_image_service.generate_blog_images(analysis, content)
+            if images:
+                print(f"Generated {len(images)} images successfully")
+                content = await blog_image_service.embed_images_in_content(
+                    content, images
+                )
+                # Update reading time to account for images
+                reading_time = (
+                    self._calculate_reading_time(content) + 1
+                )  # Add 1 minute for images
+            else:
+                print("No images were generated")
+        except Exception as e:
+            print(f"Failed to generate images for blog: {e}")
+            # Continue without images if generation fails
+
+        # Save the blog content in a file
+        with open(f"{title}.md", "w") as f:
+            f.write(content)
+
         return BlogContent(
             title=title,
             content=content,
@@ -106,13 +130,75 @@ class BlogGeneratorAgent(BaseAgent):
         # Add field-specific tags based on content
         content_lower = content.lower()
         field_tags = {
-            "ai": ["ai", "machinelearning", "artificialintelligence", "deeplearning", "neuralnetworks", "automation", "computervision", "nlp", "generativeai"],
-            "machine learning": ["machinelearning", "ml", "datascience", "supervisedlearning", "unsupervisedlearning", "reinforcementlearning", "featureengineering", "modeloptimization"],
-            "computer science": ["computerscience", "programming", "technology", "softwareengineering", "algorithms", "datastructures", "computationaltheory", "systemsdesign"],
-            "data science": ["datascience", "bigdata", "datamining", "datavisualization", "statistics", "predictiveanalytics", "dataengineering"],
-            "cybersecurity": ["cybersecurity", "infosec", "ethicalhacking", "cryptography", "networksecurity", "applicationsecurity", "securityengineering"],
-            "software development": ["softwaredevelopment", "coding", "devops", "agile", "testing", "debugging", "versioncontrol", "softwarearchitecture"],
-            "cloud computing": ["cloudcomputing", "aws", "azure", "googlecloud", "serverless", "containers", "kubernetes", "cloudsecurity"],
+            "ai": [
+                "ai",
+                "machinelearning",
+                "artificialintelligence",
+                "deeplearning",
+                "neuralnetworks",
+                "automation",
+                "computervision",
+                "nlp",
+                "generativeai",
+            ],
+            "machine learning": [
+                "machinelearning",
+                "ml",
+                "datascience",
+                "supervisedlearning",
+                "unsupervisedlearning",
+                "reinforcementlearning",
+                "featureengineering",
+                "modeloptimization",
+            ],
+            "computer science": [
+                "computerscience",
+                "programming",
+                "technology",
+                "softwareengineering",
+                "algorithms",
+                "datastructures",
+                "computationaltheory",
+                "systemsdesign",
+            ],
+            "data science": [
+                "datascience",
+                "bigdata",
+                "datamining",
+                "datavisualization",
+                "statistics",
+                "predictiveanalytics",
+                "dataengineering",
+            ],
+            "cybersecurity": [
+                "cybersecurity",
+                "infosec",
+                "ethicalhacking",
+                "cryptography",
+                "networksecurity",
+                "applicationsecurity",
+                "securityengineering",
+            ],
+            "software development": [
+                "softwaredevelopment",
+                "coding",
+                "devops",
+                "agile",
+                "testing",
+                "debugging",
+                "versioncontrol",
+                "softwarearchitecture",
+            ],
+            "cloud computing": [
+                "cloudcomputing",
+                "aws",
+                "azure",
+                "googlecloud",
+                "serverless",
+                "containers",
+                "kubernetes",
+                "cloudsecurity",
+            ],
         }
 
         for field, tags in field_tags.items():
