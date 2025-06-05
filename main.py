@@ -321,6 +321,42 @@ async def publish_to_devto(publish_now):
         return f"❌ Error publishing to DEV.to: {e!s}"
 
 
+def publish_draft():
+    """Sync wrapper for publishing as draft."""
+    try:
+        loop = asyncio.get_event_loop()
+        if loop.is_running():
+            # If loop is already running, create a task
+            import concurrent.futures
+
+            with concurrent.futures.ThreadPoolExecutor() as executor:
+                future = executor.submit(asyncio.run, publish_to_devto(False))
+                return future.result()
+        else:
+            return loop.run_until_complete(publish_to_devto(False))
+    except RuntimeError:
+        # If no event loop, create one
+        return asyncio.run(publish_to_devto(False))
+
+
+def publish_now():
+    """Sync wrapper for publishing immediately."""
+    try:
+        loop = asyncio.get_event_loop()
+        if loop.is_running():
+            # If loop is already running, create a task
+            import concurrent.futures
+
+            with concurrent.futures.ThreadPoolExecutor() as executor:
+                future = executor.submit(asyncio.run, publish_to_devto(True))
+                return future.result()
+        else:
+            return loop.run_until_complete(publish_to_devto(True))
+    except RuntimeError:
+        # If no event loop, create one
+        return asyncio.run(publish_to_devto(True))
+
+
 async def download_analysis_summary():
     """Generate downloadable analysis summary as markdown file."""
     global current_analysis
@@ -490,7 +526,8 @@ def create_interface():
 
                 with gr.Column():
                     blog_status_output = gr.Textbox(
-                        label="Generation status", interactive=False
+                        label="Generation status",
+                        interactive=False,
                     )
                     blog_output = gr.Markdown(
                         label="Generated Blog Content",
@@ -679,12 +716,12 @@ def create_interface():
         )
 
         publish_draft_btn.click(
-            fn=lambda: publish_to_devto(False),
+            fn=publish_draft,
             outputs=[publish_status],
         )
 
         publish_now_btn.click(
-            fn=lambda: publish_to_devto(True),
+            fn=publish_now,
             outputs=[publish_status],
         )
 
