@@ -14,6 +14,7 @@
 *   📝 **Automated Blog Generation:** Creates beginner-friendly blog posts from research papers, complete with title, content, tags, and estimated reading time.
 *   📱 **Social Media Content Creation:** Generates platform-specific content (LinkedIn, Twitter, Facebook, Instagram) including text posts and relevant images.
 *   🎨 **Academic Poster Generation:** Produces LaTeX-based conference posters with customizable templates (IEEE, ACM, Nature) and orientations (landscape, portrait).
+*   📊 **Presentation Generation:** Creates Beamer LaTeX presentations with customizable templates (academic, corporate, minimal) and adjustable slide counts (8-20 slides).
 *   🚀 **Direct Publishing (DEV.to):** Seamlessly publish generated blog content to DEV.to as drafts or immediately.
 *   📥 **Downloadable Outputs:** All generated content (analysis summaries, blog posts, LaTeX code, PDFs) can be easily downloaded.
 *   🌐 **User-Friendly Interface:** Built with Gradio for an intuitive and interactive experience.
@@ -244,7 +245,12 @@ The application will typically be available at `http://localhost:7860` or `http:
     *   Select a "Poster Template Style" (e.g., IEEE, ACM).
     *   Select "Poster Orientation" (landscape or portrait).
     *   Click "🎨 Generate Poster". A PDF preview and LaTeX code will be displayed. You can download both.
-6.  **Publish to DEV.to:**
+6.  **Generate Presentation:**
+    *   Go to the "📊 Presentation Generation" tab.
+    *   Select a "Presentation Template Style" (academic, corporate, minimal).
+    *   Adjust the "Number of Slides" (8-20 slides).
+    *   Click "📊 Generate Presentation". A PDF preview and Beamer LaTeX code will be displayed. You can download both.
+7.  **Publish to DEV.to:**
     *   Go to the "🚀 Publishing" tab (ensure blog content is generated first).
     *   Click "💾 Save as Draft" or "🚀 Publish Now". The status of the publication will be shown.
 

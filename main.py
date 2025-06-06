@@ -6,6 +6,7 @@ import gradio as gr
 from app.agents.blog_generator import BlogGeneratorAgent
 from app.agents.paper_analyzer import PaperAnalyzerAgent
 from app.agents.poster_generator import PosterGeneratorAgent
+from app.agents.presentation_generator import PresentationGeneratorAgent
 from app.agents.tldr_generator import TLDRGeneratorAgent
 from app.config.settings import settings
 from app.models.schemas import PaperInput
@@ -18,12 +19,14 @@ paper_analyzer = PaperAnalyzerAgent()
 blog_generator = BlogGeneratorAgent()
 tldr_generator = TLDRGeneratorAgent()
 poster_generator = PosterGeneratorAgent()
+presentation_generator = PresentationGeneratorAgent()
 
 # Global state - Consider refactoring to avoid globals if possible
 current_analysis: Optional[dict] = None
 current_blog: Optional[dict] = None
 current_tldr: Optional[dict] = None
 current_poster: Optional[dict] = None
+current_presentation: Optional[dict] = None
 
 
 async def process_paper(pdf_file, url_input, text_input, progress=None):
@@ -300,6 +303,75 @@ async def generate_poster_content(template_type, orientation, progress=None):
         )
 
 
+async def generate_presentation_content(template_type, slide_count, progress=None):
+    """Generate presentation content from analysis."""
+    global current_analysis, current_presentation
+    if progress is None:
+        progress = gr.Progress()
+
+    if not current_analysis:
+        return (
+            "❌ Please process a paper first.",
+            "",  # For beamer_output
+            PDF(visible=False),  # For presentation_pdf_preview
+            gr.DownloadButton(visible=False),  # For download_presentation_pdf_btn
+            gr.DownloadButton(visible=False),  # For download_beamer_btn
+        )
+
+    try:
+        progress(0.2, desc="Planning presentation structure...")
+
+        # Generate presentation using the PresentationGeneratorAgent
+        current_presentation = await presentation_generator.process(
+            current_analysis,
+            template_type=template_type,
+            max_slides=slide_count,
+        )
+
+        progress(0.8, desc="Compiling Beamer LaTeX...")
+
+        # Initialize updates for PDF preview and download button
+        pdf_preview_update = PDF(visible=False)
+        pdf_download_btn_update = gr.DownloadButton(visible=False)
+
+        if (
+            current_presentation.pdf_path
+            and Path(current_presentation.pdf_path).exists()
+        ):
+            pdf_path_str = str(current_presentation.pdf_path)
+            pdf_preview_update = PDF(
+                value=pdf_path_str,
+                visible=True,
+                label="Generated Presentation PDF",
+            )
+            pdf_download_btn_update = gr.DownloadButton(
+                label="📥 Download PDF",
+                value=pdf_path_str,
+                visible=True,
+            )
+
+        # Get Beamer LaTeX download button update
+        beamer_download_btn_update = await download_presentation_beamer()
+
+        progress(1.0, desc="Presentation ready!")
+        return (
+            "✅ Presentation generated successfully!",  # For presentation_status
+            current_presentation.latex_code,  # For beamer_output (string updates gr.Code value)
+            pdf_preview_update,  # For presentation_pdf_preview (PDF component update)
+            pdf_download_btn_update,  # For download_presentation_pdf_btn (DownloadButton component update)
+            beamer_download_btn_update,  # For download_beamer_btn (DownloadButton component update)
+        )
+
+    except Exception as e:
+        return (
+            f"❌ Error generating presentation: {e!s}",
+            "",  # For beamer_output
+            PDF(visible=False),  # For presentation_pdf_preview
+            gr.DownloadButton(visible=False),  # For download_presentation_pdf_btn
+            gr.DownloadButton(visible=False),  # For download_beamer_btn
+        )
+
+
 async def publish_to_devto(publish_now):
     """Publish blog content to DEV.to."""
     global current_blog
@@ -463,6 +535,26 @@ async def download_latex_code():
         return gr.DownloadButton(visible=False)
 
 
+async def download_presentation_beamer():
+    """Generate downloadable Beamer LaTeX code as a file."""
+    if not current_presentation:
+        return gr.DownloadButton(visible=False)
+
+    try:
+        # Save Beamer code to outputs directory
+        output_path = Path("outputs/presentations/presentation_beamer.tex")
+        output_path.write_text(current_presentation.latex_code, encoding="utf-8")
+
+        return gr.DownloadButton(
+            label="📥 Download Beamer LaTeX",
+            value=str(output_path),
+            visible=True,
+        )
+
+    except OSError:
+        return gr.DownloadButton(visible=False)
+
+
 # Create Gradio Interface
 def create_interface():
     with gr.Blocks(
@@ -489,11 +581,11 @@ def create_interface():
                         label="Or Enter Paper URL (arXiv, etc.)",
                         placeholder="https://arxiv.org/pdf/...",
                     )
-                    text_input = gr.Textbox(
-                        label="Or Paste Paper Text",
-                        lines=5,
-                        placeholder="Paste your research paper content here...",
-                    )
+                    # text_input = gr.Textbox(
+                    #     label="Or Paste Paper Text",
+                    #     lines=5,
+                    #     placeholder="Paste your research paper content here...",
+                    # )
 
                     process_btn = gr.Button("🔍 Analyze Paper", variant="primary")
 
@@ -625,7 +717,7 @@ def create_interface():
             # Modified layout for poster output and download buttons
             with gr.Row():
                 with gr.Column(
-                    scale=2,
+                    scale=1,
                 ):  # Column for PDF Preview and its Download Button
                     poster_pdf_preview = PDF(  # Changed from gr.File to PDF for preview
                         label="Generated Poster PDF",
@@ -648,6 +740,56 @@ def create_interface():
                         visible=False,
                     )
 
+        with gr.Tab("📊 Presentation Generation"):
+            gr.Markdown("## Generate Beamer LaTeX Presentations")
+
+            with gr.Row():
+                with gr.Column():
+                    presentation_template_dropdown = gr.Dropdown(
+                        choices=["academic", "corporate", "minimal"],
+                        value="academic",
+                        label="Presentation Template Style",
+                    )
+                    slide_count_slider = gr.Slider(
+                        minimum=8,
+                        maximum=20,
+                        value=12,
+                        step=1,
+                        label="Number of Slides",
+                    )
+                    generate_presentation_btn = gr.Button(
+                        "📊 Generate Presentation",
+                        variant="primary",
+                    )
+
+                with gr.Column():
+                    presentation_status = gr.Textbox(label="Status", interactive=False)
+
+            # Layout for presentation output and download buttons
+            with gr.Row():
+                with gr.Column(
+                    scale=1,
+                ):  # Column for PDF Preview and its Download Button
+                    presentation_pdf_preview = PDF(
+                        label="Generated Presentation PDF",
+                        visible=False,
+                    )
+                    download_presentation_pdf_btn = gr.DownloadButton(
+                        label="📥 Download PDF",
+                        visible=False,
+                    )
+                with gr.Column(
+                    scale=1,
+                ):  # Column for Beamer Code and its Download Button
+                    beamer_output = gr.Code(
+                        label="Beamer LaTeX Code",
+                        language="latex",
+                    )
+                    download_beamer_btn = gr.DownloadButton(
+                        label="📥 Download Beamer LaTeX",
+                        visible=False,
+                    )
+
         with gr.Tab("🚀 Publishing"):
             gr.Markdown("## Publish Content to Platforms")
 
@@ -665,7 +807,8 @@ def create_interface():
         # Event handlers
         process_btn.click(
             fn=process_paper,
-            inputs=[pdf_input, url_input, text_input],
+            inputs=[pdf_input, url_input],
+            # inputs=[pdf_input, url_input, text_input],
             outputs=[
                 status_output,
                 analysis_output,
@@ -715,6 +858,18 @@ def create_interface():
             ],
         )
 
+        generate_presentation_btn.click(
+            fn=generate_presentation_content,
+            inputs=[presentation_template_dropdown, slide_count_slider],
+            outputs=[
+                presentation_status,
+                beamer_output,
+                presentation_pdf_preview,  # Maps to the PDF component
+                download_presentation_pdf_btn,  # Maps to the PDF download button
+                download_beamer_btn,  # Maps to the Beamer download button
+            ],
+        )
+
         publish_draft_btn.click(
             fn=publish_draft,
             outputs=[publish_status],
@@ -732,6 +887,7 @@ if __name__ == "__main__":
     # Create output directories using pathlib
     Path("outputs/posters").mkdir(parents=True, exist_ok=True)
     Path("outputs/blogs").mkdir(parents=True, exist_ok=True)
+    Path("outputs/presentations").mkdir(parents=True, exist_ok=True)
     Path("data").mkdir(parents=True, exist_ok=True)
 
     # Launch the application
