@@ -15,7 +15,7 @@ class BlogImageService:
     """Service for generating and managing images for blog posts"""
 
     def __init__(self):
-        self.deepinfra_model = "black-forest-labs/FLUX-1-dev"
+        self.deepinfra_model = "black-forest-labs/FLUX-1.1-pro"
         self.output_dir = Path("outputs/images/blog")
         self.output_dir.mkdir(parents=True, exist_ok=True)
         self.upload_api_key = (

@@ -13,7 +13,9 @@ from app.models.schemas import PaperAnalysis
 
 class ImageGenerationService:
     def __init__(self):
-        self.client = AsyncOpenAI(api_key=settings.LIGHT_MODEL_API_KEY, base_url=settings.IMAGE_GEN_BASE_URL)
+        self.client = AsyncOpenAI(
+            api_key=settings.IMAGE_GEN_API_KEY, base_url=settings.IMAGE_GEN_BASE_URL
+        )
         self.output_dir = Path("outputs/images")
         self.output_dir.mkdir(parents=True, exist_ok=True)
 
@@ -59,7 +61,7 @@ class ImageGenerationService:
         - Facebook: Engaging, accessible, community-friendly
         - Instagram: Vibrant, aesthetic, visual-first
 
-        Generate a detailed DALL-E prompt (max 600 characters) that will create an engaging image for this research:
+        Generate a detailed image generation prompt for stable diffusion (max 800 characters) that will create an engaging image for this research:
         """
 
         from app.services.llm_service import LLMService
@@ -82,8 +84,8 @@ class ImageGenerationService:
 
         # Clean and truncate the prompt if needed
         image_prompt = image_prompt.strip().replace("\n", " ")
-        if len(image_prompt) > 600:
-            image_prompt = image_prompt[:597] + "..."
+        if len(image_prompt) > 800:
+            image_prompt = image_prompt[:797] + "..."
 
         return image_prompt
 
