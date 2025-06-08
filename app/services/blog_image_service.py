@@ -4,7 +4,6 @@ import os
 import re
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
-from typing import List
 
 import requests
 
@@ -23,8 +22,10 @@ class BlogImageService:
         )
 
     async def generate_blog_images(
-        self, analysis: PaperAnalysis, content: str
-    ) -> List[str]:
+        self,
+        analysis: PaperAnalysis,
+        content: str,
+    ) -> list[str]:
         """Generate multiple images for a blog post and return markdown image tags"""
         try:
             # Generate image prompts based on the blog content
@@ -47,8 +48,10 @@ class BlogImageService:
             return []
 
     async def _generate_image_prompts(
-        self, analysis: PaperAnalysis, content: str
-    ) -> List[str]:
+        self,
+        analysis: PaperAnalysis,
+        content: str,
+    ) -> list[str]:
         """Generate image prompts based on the research paper and blog content"""
         from app.services.llm_service import LLMService
 
@@ -92,7 +95,7 @@ class BlogImageService:
 
         response = await llm_service.generate_completion(
             messages=messages,
-            model_type="light",
+            model_type="heavy",
             temperature=0.7,
         )
 
@@ -107,7 +110,7 @@ class BlogImageService:
 
         return enhanced_prompts
 
-    async def _generate_images_async(self, prompts: List[str]) -> List[str]:
+    async def _generate_images_async(self, prompts: list[str]) -> list[str]:
         """Generate images asynchronously using DeepInfra API"""
         loop = asyncio.get_event_loop()
 
@@ -126,13 +129,16 @@ class BlogImageService:
                 if isinstance(result, str) and result != "No image URL found":
                     upload_futures.append(
                         loop.run_in_executor(
-                            executor, self._process_and_upload_image, result
+                            executor,
+                            self._process_and_upload_image,
+                            result,
                         ),
                     )
 
             if upload_futures:
                 uploaded_urls = await asyncio.gather(
-                    *upload_futures, return_exceptions=True
+                    *upload_futures,
+                    return_exceptions=True,
                 )
                 return [
                     url if not isinstance(url, Exception) else "No image URL found"
@@ -153,25 +159,87 @@ class BlogImageService:
             "num_inference_steps": 20,
             "width": 1024,
             "height": 768,  # Better aspect ratio for blog images
+            "response_format": "b64_json",
         }
+        print(f"Payload: {payload}")  # Debugging output
 
         try:
             response = requests.post(url, json=payload, headers=headers, timeout=60)
             if response.status_code == 200:
                 response_data = response.json()
-                images = response_data.get("images", [])
-                return images[0] if images else "No image URL found"
+                print(f"Response: {response_data}")  # Debugging output
+
+                # Handle response format with data array and b64_json
+                data = response_data.get("data", [])
+                if data and len(data) > 0:
+                    b64_json = data[0].get("b64_json")
+                    if b64_json:
+                        return self._save_and_return_base64_image(
+                            b64_json, "temp_image.png"
+                        )
+
+                # Handle response format with direct image_url
+                if "image_url" in response_data:
+                    return self._download_and_convert_image(response_data["image_url"])
+
+                return "No image URL found"
+
             print(f"Request failed: {response.status_code}, {response.text}")
             return "No image URL found"
         except Exception as e:
             print(f"An error occurred: {e!s}")
             return "No image URL found"
 
+    def _save_and_return_base64_image(self, b64_data: str, filename: str) -> str:
+        """Save base64 image data to file and return data URL."""
+        print(f"Saving image to temp file: {filename}")
+        print(f"Base64 length: {len(b64_data)}")
+        print(f"Image data: {b64_data[:30]}...")  # Print first 30 chars for debugging
+
+        temp_path = self.output_dir / filename
+        with temp_path.open("wb") as image_file:
+            image_file.write(base64.b64decode(b64_data))
+
+        return f"data:image/png;base64,{b64_data}"
+
+    def _download_and_convert_image(self, image_url: str) -> str:
+        """Download image from URL and convert to base64."""
+        print(f"Downloading image from URL: {image_url}")
+
+        try:
+            img_response = requests.get(image_url, timeout=60)
+            if img_response.status_code == 200:
+                # Convert image to base64
+                image_data = img_response.content
+                b64_encoded = base64.b64encode(image_data).decode("utf-8")
+
+                # Save the image to a file for debugging
+                print("Saving downloaded image to temp file...")
+                print(f"Image size: {len(image_data)} bytes")
+
+                temp_path = self.output_dir / "temp_downloaded_image.png"
+                with temp_path.open("wb") as image_file:
+                    image_file.write(image_data)
+
+                return f"data:image/png;base64,{b64_encoded}"
+
+            print(f"Failed to download image: {img_response.status_code}")
+            return "No image URL found"
+        except Exception as download_error:
+            print(f"Error downloading image: {download_error}")
+            return "No image URL found"
+
     def _process_and_upload_image(self, base64_string: str) -> str:
         """Process base64 image and upload to hosting service (synchronous)"""
         try:
-            # Save image locally first
-            image_data = base64.b64decode(base64_string.split(",")[-1])
+            # Handle both formats: "data:image/png;base64,..." and just base64 string
+            if base64_string.startswith("data:image"):
+                # Extract base64 data from data URL
+                image_data = base64.b64decode(base64_string.split(",")[-1])
+            else:
+                # Direct base64 string
+                image_data = base64.b64decode(base64_string)
+
             temp_filename = f"temp_blog_image_{hash(base64_string) % 1000000}.png"
             temp_path = self.output_dir / temp_filename
 
@@ -196,7 +264,8 @@ class BlogImageService:
             if response.status_code == 200:
                 response_data = response.json()
                 hosted_url = response_data.get("image", {}).get(
-                    "url", "No image URL found"
+                    "url",
+                    "No image URL found",
                 )
 
                 # Clean up temp file
@@ -225,7 +294,7 @@ class BlogImageService:
             return captions[image_index]
         return f"Research illustration from {analysis.title[:50]}..."
 
-    async def embed_images_in_content(self, content: str, images: List[str]) -> str:
+    async def embed_images_in_content(self, content: str, images: list[str]) -> str:
         """Embed images into blog content at appropriate locations"""
         if not images:
             return content

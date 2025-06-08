@@ -4,6 +4,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](http://makeapullrequest.com)
 [![Code style: ruff](https://img.shields.io/badge/code%20style-ruff-000000.svg)](https://github.com/charliermarsh/ruff)
+[![agent-demo-track](https://img.shields.io/badge/Agents%20MCP%20Hackathon-agent%20demo%20track-000000.svg)](https://huggingface.co/Agents-MCP-Hackathon)
 
 **ScholarShare** is an innovative platform designed to bridge the gap between complex academic research and broader public understanding. It leverages cutting-edge AI to transform dense research papers into accessible and engaging content formats, including blog posts, social media updates, and conference posters. Our goal is to empower researchers to maximize the impact of their work and foster a more informed society. 🚀
 
