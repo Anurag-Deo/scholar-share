@@ -8,6 +8,14 @@
 
 **ScholarShare** is an innovative platform designed to bridge the gap between complex academic research and broader public understanding. It leverages cutting-edge AI to transform dense research papers into accessible and engaging content formats, including blog posts, social media updates, and conference posters. Our goal is to empower researchers to maximize the impact of their work and foster a more informed society. 🚀
 
+
+## 🎥 Demo Video
+
+[![ScholarShare Demo](https://img.youtube.com/vi/GByo_w_9D-Q/maxresdefault.jpg)](https://youtu.be/GByo_w_9D-Q)
+
+> **Watch our platform in action!** This demo showcases how ScholarShare transforms complex research papers into accessible content formats using AI-powered agents.
+
+
 ## ✨ Features
 
 *   📄 **Multi-Format Paper Ingestion:** Upload PDFs, provide URLs (e.g., arXiv links), or paste raw text.
