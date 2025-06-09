@@ -8,14 +8,6 @@
 
 **ScholarShare** is an innovative platform designed to bridge the gap between complex academic research and broader public understanding. It leverages cutting-edge AI to transform dense research papers into accessible and engaging content formats, including blog posts, social media updates, and conference posters. Our goal is to empower researchers to maximize the impact of their work and foster a more informed society. 🚀
 
-
-## 🎥 Demo Video
-
-[![ScholarShare Demo](https://img.youtube.com/vi/GByo_w_9D-Q/maxresdefault.jpg)](https://youtu.be/GByo_w_9D-Q)
-
-> **Watch our platform in action!** This demo showcases how ScholarShare transforms complex research papers into accessible content formats using AI-powered agents.
-
-
 ## ✨ Features
 
 *   📄 **Multi-Format Paper Ingestion:** Upload PDFs, provide URLs (e.g., arXiv links), or paste raw text.
@@ -188,9 +180,9 @@ graph TD
 
 3.  **Install dependencies:**
 
-    *   **Using Poetry (recommended):**
+    *   **Using UV (recommended):**
         ```bash
-        poetry install
+        uv sync
         ```
 
     *   **Using pip and `requirements.txt`:**
@@ -209,10 +201,10 @@ graph TD
 
 ### ▶️ Running the Application
 
-*   **Using Poetry:**
+*   **Using UV:**
     ```bash
     cd scholarshare
-    poetry run python main.py
+    uv run main.py
     ```
 
 *   **Using Python directly:**
@@ -263,18 +255,11 @@ The application will typically be available at `http://localhost:7860` or `http:
     *   Go to the "🚀 Publishing" tab (ensure blog content is generated first).
     *   Click "💾 Save as Draft" or "🚀 Publish Now". The status of the publication will be shown.
 
-## 🖼️ Screenshots / Demo
+## 🖼️ Demo Video
 
-*(Placeholder: Add screenshots of the Gradio interface for each tab and feature. A GIF demonstrating the workflow would be excellent here.)*
+[![ScholarShare Demo](https://img.youtube.com/vi/GByo_w_9D-Q/maxresdefault.jpg)](https://youtu.be/GByo_w_9D-Q)
 
-**Example: Paper Input Tab**
-`[Image of Paper Input Tab]`
-
-**Example: Blog Generation Tab**
-`[Image of Blog Generation Tab]`
-
-**Example: Poster Preview**
-`[Image of Poster Preview]`
+> **Watch our platform in action!** This demo showcases how ScholarShare transforms complex research papers into accessible content formats using AI-powered agents.
 
 ## 🤝 Contributing
 
@@ -293,12 +278,11 @@ Please provide a clear description of your changes in the PR.
 ## 📜 License
 
 This project is licensed under the **MIT License**. See the [LICENSE](LICENSE.md) file for details.
-*(Note: You'll need to create a `LICENSE.md` file with the MIT license text if it doesn't exist.)*
 
 ## 📞 Contact & Support
 
 *   **Issues:** If you encounter any bugs or have feature requests, please [open an issue](https://github.com/your-username/ScholarShare/issues) on GitHub. <!-- Replace with actual repo URL -->
-*   **Maintainer:** [Your Name/Organization] - [your.email@example.com] <!-- Update with actual contact -->
+*   **Maintainer:** [Anurag Deo]<!-- Update with actual contact -->
 
 ## 🙏 Acknowledgements
 
@@ -307,4 +291,3 @@ This project is licensed under the **MIT License**. See the [LICENSE](LICENSE.md
 *   The open-source community for the various libraries and tools that make this project possible.
 
 ---
-*This README was generated with assistance from an AI coding agent.*
