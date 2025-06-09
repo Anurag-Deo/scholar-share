@@ -45,15 +45,15 @@ async def process_paper(pdf_file, url_input, text_input, progress=None):
             pdf_path = Path(pdf_file.name)
             pdf_content = await asyncio.to_thread(pdf_path.read_bytes)
             # TODO: Uncomment when PDF parsing is implemented
-            # parsed_data = pdf_service.parse_pdf(pdf_content)
-            # content = parsed_data["text"]
+            parsed_data = pdf_service.parse_pdf(pdf_content)
+            content = parsed_data["text"]
             # Read the PDF content directly from file parsed_pdf_content.txt
-            with open("parsed_pdf_content.txt", encoding="utf-8") as f:
-                content = f.read()
+            # with open("parsed_pdf_content.txt", encoding="utf-8") as f:
+            #     content = f.read()
             source_type = "pdf"
         elif url_input and url_input.strip():
             progress(0.2, desc="Fetching from URL...")
-            parsed_data = await pdf_service.parse_url(url_input.strip())
+            parsed_data = pdf_service.parse_url(url_input.strip())
             content = parsed_data["text"]
             source_type = "url"
         elif text_input and text_input.strip():
