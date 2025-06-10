@@ -1,12 +1,12 @@
 import asyncio
 import base64
-import os
 import re
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 import requests
 
+from app.config.settings import settings
 from app.models.schemas import PaperAnalysis
 
 
@@ -152,7 +152,7 @@ class BlogImageService:
         url = f"https://api.deepinfra.com/v1/inference/{self.deepinfra_model}"
         headers = {
             "Content-Type": "application/json",
-            "Authorization": f"bearer {os.getenv('DEEPINFRA_API_KEY')}",
+            "Authorization": f"bearer {settings.DEEPINFRA_API_KEY_CURRENT}",
         }
         payload = {
             "prompt": prompt,
@@ -175,7 +175,8 @@ class BlogImageService:
                     b64_json = data[0].get("b64_json")
                     if b64_json:
                         return self._save_and_return_base64_image(
-                            b64_json, "temp_image.png"
+                            b64_json,
+                            "temp_image.png",
                         )
 
                 # Handle response format with direct image_url

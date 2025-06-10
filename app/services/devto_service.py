@@ -1,5 +1,5 @@
 import asyncio
-from typing import Any, Dict
+from typing import Any
 
 import requests
 
@@ -9,27 +9,32 @@ from app.models.schemas import BlogContent
 
 class DevToService:
     def __init__(self):
-        self.api_key = settings.DEVTO_API_KEY
+        # Don't store the API key at init, get it dynamically
         self.base_url = "https://dev.to/api"
+
+    def get_api_key(self):
+        """Get the current API key (with runtime override support)"""
+        return settings.DEVTO_API_KEY_CURRENT
 
     async def publish_article(
         self,
         blog_content: BlogContent,
         publish_now: bool = False,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Publish article to DEV.to"""
 
         def _sync_publish():
             try:
                 # Check if API key is configured
-                if not self.api_key:
+                api_key = self.get_api_key()
+                if not api_key:
                     return {
                         "success": False,
-                        "error": "DEV.to API key is not configured. Please set the DEVTO_API_KEY environment variable.",
+                        "error": "DEV.to API key is not configured. Please set the DEVTO_API_KEY environment variable or override it in the Configuration tab.",
                     }
 
                 headers = {
-                    "api-key": self.api_key,
+                    "api-key": api_key,
                     "Content-Type": "application/json",
                 }
 
@@ -105,7 +110,7 @@ class DevToService:
         loop = asyncio.get_event_loop()
         return await loop.run_in_executor(None, _sync_publish)
 
-    async def get_my_articles(self, per_page: int = 10) -> Dict[str, Any]:
+    async def get_my_articles(self, per_page: int = 10) -> dict[str, Any]:
         """Get user's published articles"""
 
         def _sync_get_articles():

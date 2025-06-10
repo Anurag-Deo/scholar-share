@@ -1,8 +1,6 @@
 import asyncio
 import base64
-from email.mime import base
 from pathlib import Path
-from typing import Optional
 
 import aiofiles
 from openai import AsyncOpenAI
@@ -13,11 +11,16 @@ from app.models.schemas import PaperAnalysis
 
 class ImageGenerationService:
     def __init__(self):
-        self.client = AsyncOpenAI(
-            api_key=settings.IMAGE_GEN_API_KEY, base_url=settings.IMAGE_GEN_BASE_URL
-        )
+        # Don't initialize client here, create it on-demand to get current API key
         self.output_dir = Path("outputs/images")
         self.output_dir.mkdir(parents=True, exist_ok=True)
+
+    def get_client(self):
+        """Get OpenAI client with current API key (supports runtime overrides)"""
+        api_key = settings.IMAGE_GEN_API_KEY_CURRENT
+        if not api_key:
+            raise ValueError("Image generation API key not configured")
+        return AsyncOpenAI(api_key=api_key, base_url=settings.IMAGE_GEN_BASE_URL)
 
     async def generate_image_prompt(
         self,
@@ -94,7 +97,7 @@ class ImageGenerationService:
         analysis: PaperAnalysis,
         platform: str,
         style: str = settings.IMAGE_GEN_IMAGE_STYLE,
-    ) -> Optional[str]:
+    ) -> str | None:
         """Generate an image for social media post using Image Generation model"""
         try:
             # Generate the image prompt using LLM
@@ -104,7 +107,8 @@ class ImageGenerationService:
             styled_prompt = f"{image_prompt}, {platform} social media style, professional, high quality, digital art"
 
             # Generate image using Image Generation model
-            response = await self.client.images.generate(
+            client = self.get_client()
+            response = await client.images.generate(
                 model=settings.IMAGE_GEN_MODEL,
                 prompt=styled_prompt,
                 size=settings.IMAGE_GEN_IMAGE_SIZE,
@@ -165,7 +169,7 @@ class ImageGenerationService:
 
         images = await asyncio.gather(*tasks, return_exceptions=True)
 
-        for platform, image_path in zip(platforms, images):
+        for platform, image_path in zip(platforms, images, strict=False):
             if isinstance(image_path, Exception):
                 print(f"Failed to generate image for {platform}: {image_path!s}")
                 results[platform] = None

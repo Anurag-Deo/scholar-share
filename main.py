@@ -1,8 +1,9 @@
 import asyncio
 from pathlib import Path
-from typing import Optional
 
 import gradio as gr
+from gradio_pdf import PDF
+
 from app.agents.blog_generator import BlogGeneratorAgent
 from app.agents.paper_analyzer import PaperAnalyzerAgent
 from app.agents.poster_generator import PosterGeneratorAgent
@@ -12,7 +13,6 @@ from app.config.settings import settings
 from app.models.schemas import PaperInput
 from app.services.devto_service import devto_service
 from app.services.pdf_service import pdf_service
-from gradio_pdf import PDF
 
 # Initialize agents
 paper_analyzer = PaperAnalyzerAgent()
@@ -22,14 +22,14 @@ poster_generator = PosterGeneratorAgent()
 presentation_generator = PresentationGeneratorAgent()
 
 # Global state - Consider refactoring to avoid globals if possible
-current_analysis: Optional[dict] = None
-current_blog: Optional[dict] = None
-current_tldr: Optional[dict] = None
-current_poster: Optional[dict] = None
-current_presentation: Optional[dict] = None
+current_analysis: dict | None = None
+current_blog: dict | None = None
+current_tldr: dict | None = None
+current_poster: dict | None = None
+current_presentation: dict | None = None
 
 
-async def process_paper(pdf_file, url_input, text_input, progress=None):
+async def process_paper(pdf_file, url_input, progress=None):
     """Process paper from various input sources."""
     global current_analysis
     if progress is None:
@@ -555,6 +555,56 @@ async def download_presentation_beamer():
         return gr.DownloadButton(visible=False)
 
 
+# Configuration functions
+def update_api_keys(
+    heavy_model_key,
+    light_model_key,
+    coding_model_key,
+    devto_key,
+    mistral_key,
+):
+    """Update API keys with runtime overrides."""
+    # Update settings with new keys
+    settings.set_override("HEAVY_MODEL_API_KEY", heavy_model_key)
+    settings.set_override("LIGHT_MODEL_API_KEY", light_model_key)
+    settings.set_override("CODING_MODEL_API_KEY", coding_model_key)
+    settings.set_override("IMAGE_GEN_API_KEY", image_gen_key)
+    settings.set_override("DEEPINFRA_API_KEY", deepinfra_key)
+    settings.set_override("DEVTO_API_KEY", devto_key)
+    settings.set_override("MISTRAL_API_KEY", mistral_key)
+
+    # Get status of overrides
+    status = settings.get_overrides_status()
+
+    # Create status message
+    overridden_keys = [key for key, is_overridden in status.items() if is_overridden]
+
+    if overridden_keys:
+        status_msg = (
+            f"✅ Configuration updated! Overridden keys: {', '.join(overridden_keys)}"
+        )
+    else:
+        status_msg = "ℹ Configuration cleared. Using environment variables."
+
+    return status_msg
+
+
+def clear_api_keys():
+    """Clear all API key overrides."""
+    settings.clear_overrides()
+    return "🔄 All API key overrides cleared. Using environment variables."
+
+
+def get_current_config_status():
+    """Get current configuration status."""
+    status = settings.get_overrides_status()
+    overridden_keys = [key for key, is_overridden in status.items() if is_overridden]
+
+    if overridden_keys:
+        return f"🔧 Active overrides: {', '.join(overridden_keys)}"
+    return "📋 Using environment variables (no overrides active)"
+
+
 # Create Gradio Interface
 def create_interface():
     with gr.Blocks(
@@ -804,6 +854,69 @@ def create_interface():
                     interactive=False,
                 )
 
+        with gr.Tab("⚙️ Configuration"):
+            gr.Markdown("## API Key Configuration")
+            gr.Markdown("""
+            Override API keys from environment variables. This is useful when your environment keys expire or you want to use different keys temporarily.
+            Leave fields empty to use environment variables.
+            """)
+
+            with gr.Row():
+                with gr.Column():
+                    gr.Markdown("### Language Models")
+                    heavy_model_key_input = gr.Textbox(
+                        label="Heavy Model API Key (GPT-4, etc.)",
+                        type="password",
+                        placeholder="Enter key to override environment variable...",
+                    )
+                    light_model_key_input = gr.Textbox(
+                        label="Light Model API Key (GPT-4-mini/nano, etc.)",
+                        type="password",
+                        placeholder="Enter key to override environment variable...",
+                    )
+                    coding_model_key_input = gr.Textbox(
+                        label="Coding Model API Key (Claude)",
+                        type="password",
+                        placeholder="Enter key to override environment variable...",
+                    )
+                    mistral_key_input = gr.Textbox(
+                        label="Mistral API Key",
+                        type="password",
+                        placeholder="Enter key to override environment variable...",
+                    )
+
+                with gr.Column():
+                    gr.Markdown("### Other Services")
+                    # image_gen_key_input = gr.Textbox(
+                    #     label="Image Generation API Key (DALL-E, etc.)",
+                    #     type="password",
+                    #     placeholder="Enter key to override environment variable...",
+                    # )
+                    # deepinfra_key_input = gr.Textbox(
+                    #     label="DeepInfra API Key",
+                    #     type="password",
+                    #     placeholder="Enter key to override environment variable...",
+                    # )
+                    devto_key_input = gr.Textbox(
+                        label="DEV.to API Key",
+                        type="password",
+                        placeholder="Enter key to override environment variable...",
+                    )
+
+            with gr.Row():
+                update_config_btn = gr.Button(
+                    "💾 Update Configuration", variant="primary"
+                )
+                clear_config_btn = gr.Button(
+                    "🔄 Clear All Overrides", variant="secondary"
+                )
+
+            config_status = gr.Textbox(
+                label="Configuration Status",
+                interactive=False,
+                value=get_current_config_status(),
+            )
+
         # Event handlers
         process_btn.click(
             fn=process_paper,
@@ -878,6 +991,23 @@ def create_interface():
         publish_now_btn.click(
             fn=publish_now,
             outputs=[publish_status],
+        )
+
+        update_config_btn.click(
+            fn=update_api_keys,
+            inputs=[
+                heavy_model_key_input,
+                light_model_key_input,
+                coding_model_key_input,
+                devto_key_input,
+                mistral_key_input,
+            ],
+            outputs=[config_status],
+        )
+
+        clear_config_btn.click(
+            fn=clear_api_keys,
+            outputs=[config_status],
         )
 
     return app
