@@ -7,7 +7,7 @@ from app.models.schemas import PaperAnalysis, PaperInput
 
 class PaperAnalyzerAgent(BaseAgent):
     def __init__(self):
-        super().__init__("PaperAnalyzer", model_type="light")
+        super().__init__("PaperAnalyzer", model_type="heavy")
 
     async def process(self, input_data: PaperInput) -> PaperAnalysis:
         """Analyze research paper and extract key information"""

@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <title>{{ title }}</title>
+
+    <!-- Reveal.js core -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5/dist/reveal.css">
+
+    <!-- Only the house style lives here – KEEP THIS SHORT -->
+    <style>
+        :root {
+            --brand-primary: #004d99;
+            /* deep blue  */
+            --brand-accent: #ffa726;
+            /* warm orange*/
+            --bg: #ffffff;
+            --text: #222222;
+            --font-head: "Inter", sans-serif;
+            --font-body: "Inter", sans-serif;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: var(--font-body);
+        }
+
+        h1,
+        h2,
+        h3 {
+            font-family: var(--font-head);
+            color: var(--brand-primary);
+        }
+
+        ul li::marker {
+            color: var(--brand-accent);
+        }
+
+        /* optional cover slide helper */
+        section[data-layout="cover"] {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: var(--brand-primary);
+            color: #fff;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="reveal">
+        <div class="slides">
+            {{ content }} <!-- LLM-generated <section> … </section> comes here -->
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@5/dist/reveal.js"></script>
+    <script>new Reveal().initialize({ hash: true });</script>
+</body>
+
+</html>

@@ -13,6 +13,7 @@ from app.config.settings import settings
 from app.models.schemas import PaperInput
 from app.services.devto_service import devto_service
 from app.services.pdf_service import pdf_service
+from app.models.schemas import PresentationOutput
 
 # Initialize agents
 paper_analyzer = PaperAnalyzerAgent()
@@ -344,22 +345,22 @@ async def generate_presentation_content(template_type, slide_count, progress=Non
                 visible=True,
                 label="Generated Presentation PDF",
             )
-            pdf_download_btn_update = gr.DownloadButton(
-                label="📥 Download PDF",
-                value=pdf_path_str,
-                visible=True,
-            )
+        ppt_download_btn_update = gr.DownloadButton(
+            label="📥 Download PPTX",
+            value=str(current_presentation.ppt_path),
+            visible=bool(current_presentation.ppt_path),
+        )
 
         # Get Beamer LaTeX download button update
-        beamer_download_btn_update = await download_presentation_beamer()
+        # beamer_download_btn_update = await download_presentation_beamer()
 
         progress(1.0, desc="Presentation ready!")
         return (
-            "✅ Presentation generated successfully!",  # For presentation_status
-            current_presentation.latex_code,  # For beamer_output (string updates gr.Code value)
-            pdf_preview_update,  # For presentation_pdf_preview (PDF component update)
-            pdf_download_btn_update,  # For download_presentation_pdf_btn (DownloadButton component update)
-            beamer_download_btn_update,  # For download_beamer_btn (DownloadButton component update)
+            "✅ Presentation generated successfully!",
+            current_presentation.html_code,  # show raw HTML in Code component
+            pdf_preview_update,
+            pdf_download_btn_update,
+            ppt_download_btn_update,  # <-- NEW
         )
 
     except Exception as e:
